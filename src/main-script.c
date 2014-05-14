@@ -30,73 +30,77 @@ struct options_t _options;
 #define CHILLI_GROUP "chilli"
 #endif
 
-static void usage(char *prog) {
-  fprintf(stderr,"%s chilli-bin script-path [script-arguments]\n", prog);
-  exit(-1);
+static void usage(char *prog)
+{
+	fprintf(stderr, "%s chilli-bin script-path [script-arguments]\n", prog);
+	exit(-1);
 }
 
-int main(int argc, char **argv) {
-  struct stat statbuf;
-  uid_t uid = getuid();
-  uid_t gid = getgid();
-  uid_t euid = geteuid();
-  uid_t egid = getegid();
-  
-  struct passwd * pwd = getpwuid(uid);
-  struct group * grp = getgrgid(gid);
+int main(int argc, char **argv)
+{
+	struct stat statbuf;
+	uid_t uid = getuid();
+	uid_t gid = getgid();
+	uid_t euid = geteuid();
+	uid_t egid = getegid();
 
-  if (argc < 3)
-    usage(argv[0]);
-  
-  options_init();
+	struct passwd *pwd = getpwuid(uid);
+	struct group *grp = getgrgid(gid);
 
-  openlog(PACKAGE, LOG_PID, LOG_DAEMON);
-  
-  memset(&statbuf, 0, sizeof(statbuf));
-  
-  if (!options_binload(argv[1])) {
-    log_err(0, "invalid binary config file %s", argv[1]);
-    usage(argv[0]);
-  }
+	if (argc < 3)
+		usage(argv[0]);
 
-  if (uid != 0) {
-    if (strcmp(pwd->pw_name, CHILLI_USER)) {
-      log_err(0, "has to run as user %s or root", CHILLI_USER);
-      usage(argv[0]);
-    }
-    
-    if (strcmp(grp->gr_name, CHILLI_GROUP)) {
-      log_err(0, "has to run as group %s or root", CHILLI_GROUP);
-      usage(argv[0]);
-    }
-  }
-  
-  log_dbg("USER %s(%d/%d), GROUP %s(%d/%d) CHILLI[UID %d, GID %d]", 
-	  pwd->pw_name, uid, euid, grp->gr_name, gid, egid,
-	  _options.uid, _options.gid);
-  
-  if (stat(argv[2], &statbuf)) { 
-    log_err(errno, "%s does not exist", argv[2]); 
-    usage(argv[0]);
-  }
-  
-  if (_options.uid &&                        /* chilli is running as non-root */
-      _options.uid == euid &&                /* current euid same as chilli uid */
-      _options.gid == egid &&                /* current egid same as chilli gid */
-      statbuf.st_uid == 0 &&                 /* script owned by root */
-      statbuf.st_gid == _options.gid &&      /* script group same as chilli gid */
-      (statbuf.st_mode & 0400) == 0400) {
-    
-    if (setuid(0))
-      log_err(errno, "setuid %s", argv[0]);
-  }
-  
-  log_info("Running %s (%d/%d)", argv[2], getuid(), geteuid());
+	options_init();
 
-  if (execv(argv[2], &argv[2])) {
-    log_err(errno, "exec %s", argv[2]);
-    usage(argv[0]);
-  }
-  
-  return 0;
+	openlog(PACKAGE, LOG_PID, LOG_DAEMON);
+
+	memset(&statbuf, 0, sizeof(statbuf));
+
+	if (!options_binload(argv[1])) {
+		log_err(0, "invalid binary config file %s", argv[1]);
+		usage(argv[0]);
+	}
+
+	if (uid != 0) {
+		if (strcmp(pwd->pw_name, CHILLI_USER)) {
+			log_err(0, "has to run as user %s or root",
+				CHILLI_USER);
+			usage(argv[0]);
+		}
+
+		if (strcmp(grp->gr_name, CHILLI_GROUP)) {
+			log_err(0, "has to run as group %s or root",
+				CHILLI_GROUP);
+			usage(argv[0]);
+		}
+	}
+
+	log_dbg("USER %s(%d/%d), GROUP %s(%d/%d) CHILLI[UID %d, GID %d]",
+		pwd->pw_name, uid, euid, grp->gr_name, gid, egid,
+		_options.uid, _options.gid);
+
+	if (stat(argv[2], &statbuf)) {
+		log_err(errno, "%s does not exist", argv[2]);
+		usage(argv[0]);
+	}
+
+	if (_options.uid &&	/* chilli is running as non-root */
+	    _options.uid == euid &&	/* current euid same as chilli uid */
+	    _options.gid == egid &&	/* current egid same as chilli gid */
+	    statbuf.st_uid == 0 &&	/* script owned by root */
+	    statbuf.st_gid == _options.gid &&	/* script group same as chilli gid */
+	    (statbuf.st_mode & 0400) == 0400) {
+
+		if (setuid(0))
+			log_err(errno, "setuid %s", argv[0]);
+	}
+
+	log_info("Running %s (%d/%d)", argv[2], getuid(), geteuid());
+
+	if (execv(argv[2], &argv[2])) {
+		log_err(errno, "exec %s", argv[2]);
+		usage(argv[0]);
+	}
+
+	return 0;
 }

@@ -22,86 +22,101 @@
 
 static int selfpipe[2] = { -1, -1 };
 
-static void _trigger (int s) {
-  char c = (char)s;
-  /*log_dbg("PID %d SIG Trigger %d", getpid(), s);*/
-  safe_write(selfpipe[1], &c, 1);
+static void _trigger(int s)
+{
+	char c = (char)s;
+	/*log_dbg("PID %d SIG Trigger %d", getpid(), s); */
+	safe_write(selfpipe[1], &c, 1);
 }
 
-static void _ignore (int s) {
-  /*log_dbg("PID %d SIG Ignore %d", getpid(), s);*/
+static void _ignore(int s)
+{
+	/*log_dbg("PID %d SIG Ignore %d", getpid(), s); */
 }
 
-static void selfpipe_close (void) {
-  register int e = errno;
-  safe_close(selfpipe[1]);
-  safe_close(selfpipe[0]);
-  selfpipe[0] = selfpipe[1] = -1;
-  errno = e;
+static void selfpipe_close(void)
+{
+	register int e = errno;
+	safe_close(selfpipe[1]);
+	safe_close(selfpipe[0]);
+	selfpipe[0] = selfpipe[1] = -1;
+	errno = e;
 }
 
 #ifndef O_NONBLOCK
 #define O_NONBLOCK O_NDELAY
 #endif
 
-int ndelay_on (int fd) {
-  register int got = fcntl(fd, F_GETFL);
-  return (got == -1) ? -1 : fcntl(fd, F_SETFL, got | O_NONBLOCK);
+int ndelay_on(int fd)
+{
+	register int got = fcntl(fd, F_GETFL);
+	return (got == -1) ? -1 : fcntl(fd, F_SETFL, got | O_NONBLOCK);
 }
 
-int ndelay_off (int fd) {
-  register int got = fcntl(fd, F_GETFL);
-  return (got == -1) ? -1 : fcntl(fd, F_SETFL, got & ~O_NONBLOCK);
+int ndelay_off(int fd)
+{
+	register int got = fcntl(fd, F_GETFL);
+	return (got == -1) ? -1 : fcntl(fd, F_SETFL, got & ~O_NONBLOCK);
 }
 
-int coe (int fd) {
-   register int flags = fcntl(fd, F_GETFD, 0);
-   if (flags == -1) return -1;
-   return fcntl(fd, F_SETFD, flags | FD_CLOEXEC);
+int coe(int fd)
+{
+	register int flags = fcntl(fd, F_GETFD, 0);
+	if (flags == -1)
+		return -1;
+	return fcntl(fd, F_SETFD, flags | FD_CLOEXEC);
 }
 
-int selfpipe_init (void) {
-  if (selfpipe[0] >= 0) return (errno = EBUSY, -1);
-  if (pipe(selfpipe) == -1) return -1;
-  if ((ndelay_on(selfpipe[1]) == -1)
-   || (coe(selfpipe[1]) == -1)
-   || (ndelay_on(selfpipe[0]) == -1)
-   || (coe(selfpipe[0]) == -1))
-    selfpipe_close();
-  return selfpipe[0];
+int selfpipe_init(void)
+{
+	if (selfpipe[0] >= 0)
+		return (errno = EBUSY, -1);
+	if (pipe(selfpipe) == -1)
+		return -1;
+	if ((ndelay_on(selfpipe[1]) == -1)
+	    || (coe(selfpipe[1]) == -1)
+	    || (ndelay_on(selfpipe[0]) == -1)
+	    || (coe(selfpipe[0]) == -1))
+		selfpipe_close();
+	return selfpipe[0];
 }
 
-int selfpipe_read (void) {
-  char c;
-  int r = safe_read(selfpipe[0], &c, 1);
-  return (r <= 0) ? r : (int)c;
+int selfpipe_read(void)
+{
+	char c;
+	int r = safe_read(selfpipe[0], &c, 1);
+	return (r <= 0) ? r : (int)c;
 }
 
-void selfpipe_finish (void) {
-  selfpipe_close();
+void selfpipe_finish(void)
+{
+	selfpipe_close();
 }
 
-int set_signal (int signo, void (*func)(int)) {
-  struct sigaction act;
-  act.sa_handler = func;
-  sigemptyset(&act.sa_mask);
-  act.sa_flags = 0;
-  if (signo == SIGALRM) {
+int set_signal(int signo, void (*func) (int))
+{
+	struct sigaction act;
+	act.sa_handler = func;
+	sigemptyset(&act.sa_mask);
+	act.sa_flags = 0;
+	if (signo == SIGALRM) {
 #ifdef  SA_INTERRUPT
-    act.sa_flags |= SA_INTERRUPT;
+		act.sa_flags |= SA_INTERRUPT;
 #endif
-  } else {
+	} else {
 #ifdef  SA_RESTART
-    act.sa_flags |= SA_RESTART;
+		act.sa_flags |= SA_RESTART;
 #endif
-  }
-  return sigaction(signo, &act, NULL);
+	}
+	return sigaction(signo, &act, NULL);
 }
 
-int selfpipe_trap (int signo) {
-  return set_signal(signo, _trigger);
+int selfpipe_trap(int signo)
+{
+	return set_signal(signo, _trigger);
 }
 
-int selfpipe_ignore (int signo) {
-  return set_signal(signo, _ignore);
+int selfpipe_ignore(int signo)
+{
+	return set_signal(signo, _ignore);
 }

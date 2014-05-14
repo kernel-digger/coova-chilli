@@ -22,33 +22,31 @@
 #define _RADIUS_PKT_H
 
 struct radius_packet_t {
-  uint8_t code;
-  uint8_t id;
-  uint16_t length;
-  uint8_t authenticator[RADIUS_AUTHLEN];
-  uint8_t payload[RADIUS_PACKSIZE-RADIUS_HDRSIZE];
-} __attribute__((packed));
-
+	uint8_t code;
+	uint8_t id;
+	uint16_t length;
+	uint8_t authenticator[RADIUS_AUTHLEN];
+	uint8_t payload[RADIUS_PACKSIZE - RADIUS_HDRSIZE];
+} __attribute__ ((packed));
 
 struct radius_vsattr_t {
-  uint32_t i;  /* vendor-id */
-  uint8_t t;   /* vsa type */
-  uint8_t l;   /* length */
-  union {
-    uint32_t i;
-    uint8_t  t[RADIUS_ATTR_VLEN-4];
-  } v;         /* value */
-} __attribute__((packed));
-
+	uint32_t i;		/* vendor-id */
+	uint8_t t;		/* vsa type */
+	uint8_t l;		/* length */
+	union {
+		uint32_t i;
+		uint8_t t[RADIUS_ATTR_VLEN - 4];
+	} v;			/* value */
+} __attribute__ ((packed));
 
 struct radius_attr_t {
-  uint8_t t;   /* type */
-  uint8_t l;   /* length */
-  union {
-    uint32_t i;
-    uint8_t  t[RADIUS_ATTR_VLEN];
-    struct radius_vsattr_t vv;
-  } v;        /* value */
-} __attribute__((packed));
+	uint8_t t;		/* type */
+	uint8_t l;		/* length */
+	union {
+		uint32_t i;
+		uint8_t t[RADIUS_ATTR_VLEN];
+		struct radius_vsattr_t vv;
+	} v;			/* value */
+} __attribute__ ((packed));
 
 #endif

@@ -26,8 +26,8 @@
 #ifdef HAVE_MATRIXSSL
 #include "mssl.h"
 typedef struct {
-  sslKeys_t * keys;
-  char ready;
+	sslKeys_t *keys;
+	char ready;
 } openssl_env;
 #endif
 
@@ -69,45 +69,46 @@ typedef struct {
 
 typedef struct {
 #if OPENSSL_VERSION_NUMBER >= 0x10000000L
-  const 
+	const
 #endif
-  SSL_METHOD *meth;
-  SSL_CTX *ctx;
+	SSL_METHOD *meth;
+	SSL_CTX *ctx;
 #ifdef HAVE_OPENSSL
-  ENGINE *engine;
+	ENGINE *engine;
 #endif
-  void *tmpKeys[OPENSSL_TMPKEY_MAX];
-  char ready;
+	void *tmpKeys[OPENSSL_TMPKEY_MAX];
+	char ready;
 } openssl_env;
 
 #endif
 
 typedef struct {
-  openssl_env *env;
-  SSL *con;
-  int sock;
-  int timeout;
+	openssl_env *env;
+	SSL *con;
+	int sock;
+	int timeout;
 } openssl_con;
 
-openssl_env * initssl();
-openssl_env * initssl_cli();
-int openssl_verify_peer(openssl_env *env, int mode);
-int openssl_use_certificate(openssl_env *env, char *file);
-int openssl_use_privatekey(openssl_env *env, char *file);
-int openssl_cacert_location(openssl_env *env, char *file, char *dir);
-int openssl_env_init(openssl_env *env, char *engine, int server);
-int openssl_error(openssl_con *con, int ret, char *func);
-void openssl_shutdown(openssl_con *con, int state);
-int openssl_read(openssl_con *con, char *b, int l, int t);
-int openssl_write(openssl_con *con, char *b, int l, int t);
-void openssl_free(openssl_con *con);
-void openssl_env_free(openssl_env *env);
-int openssl_pending(openssl_con *con);
+openssl_env *initssl();
+openssl_env *initssl_cli();
+int openssl_verify_peer(openssl_env * env, int mode);
+int openssl_use_certificate(openssl_env * env, char *file);
+int openssl_use_privatekey(openssl_env * env, char *file);
+int openssl_cacert_location(openssl_env * env, char *file, char *dir);
+int openssl_env_init(openssl_env * env, char *engine, int server);
+int openssl_error(openssl_con * con, int ret, char *func);
+void openssl_shutdown(openssl_con * con, int state);
+int openssl_read(openssl_con * con, char *b, int l, int t);
+int openssl_write(openssl_con * con, char *b, int l, int t);
+void openssl_free(openssl_con * con);
+void openssl_env_free(openssl_env * env);
+int openssl_pending(openssl_con * con);
 
 struct redir_conn_t;
-openssl_con *openssl_accept_fd(openssl_env *env, int fd, int timeout, struct redir_conn_t *);
-openssl_con *openssl_connect_fd(openssl_env *env, int fd, int timeout);
-int openssl_check_accept(openssl_con *c, struct redir_conn_t *);
+openssl_con *openssl_accept_fd(openssl_env * env, int fd, int timeout,
+			       struct redir_conn_t *);
+openssl_con *openssl_connect_fd(openssl_env * env, int fd, int timeout);
+int openssl_check_accept(openssl_con * c, struct redir_conn_t *);
 
 #endif
 #endif

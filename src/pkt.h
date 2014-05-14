@@ -18,20 +18,19 @@
  * 
  */
 
-
 #ifndef _PKT_H
 #define _PKT_H
 
-#define PKT_ETH_ALEN              6 /* Ethernet Address Length */
-#define PKT_ETH_HLEN             14 /* Ethernet Header Length */
+#define PKT_ETH_ALEN              6	/* Ethernet Address Length */
+#define PKT_ETH_HLEN             14	/* Ethernet Header Length */
 
 /*
  * http://www.iana.org/assignments/ethernet-numbers
  */
 #define PKT_ETH_PROTO_IP     0x0800
 #define PKT_ETH_PROTO_ARP    0x0806
-#define PKT_ETH_PROTO_WOL    0x0842	
-#define PKT_ETH_PROTO_ETHBR  0x6558 
+#define PKT_ETH_PROTO_WOL    0x0842
+#define PKT_ETH_PROTO_ETHBR  0x6558
 #define PKT_ETH_PROTO_8021Q  0x8100
 #define PKT_ETH_PROTO_IPX    0x8137
 #define PKT_ETH_PROTO_IPv6   0x86dd
@@ -41,17 +40,17 @@
 #define PKT_ETH_PROTO_EAPOL  0x888e
 #define PKT_ETH_PROTO_CHILLI 0xbeef
 
-#define PKT_IP_PLEN            1500 /* IP Payload Length */
-#define PKT_IP_VER_HLEN        0x45 
+#define PKT_IP_PLEN            1500	/* IP Payload Length */
+#define PKT_IP_VER_HLEN        0x45
 #define PKT_IP_ALEN               4
 #define PKT_IP_HLEN              20
 #define PKT_IPv6_HLEN            40
 
-#define PKT_IP_PROTO_ICMP         1 /* ICMP Protocol number */
-#define PKT_IP_PROTO_IGMP         2 /* IGMP Protocol number */
-#define PKT_IP_PROTO_TCP          6 /* TCP Protocol number */
-#define PKT_IP_PROTO_UDP         17 /* UDP Protocol number */
-#define PKT_IP_PROTO_GRE         47 /* GRE Protocol number */
+#define PKT_IP_PROTO_ICMP         1	/* ICMP Protocol number */
+#define PKT_IP_PROTO_IGMP         2	/* IGMP Protocol number */
+#define PKT_IP_PROTO_TCP          6	/* TCP Protocol number */
+#define PKT_IP_PROTO_UDP         17	/* UDP Protocol number */
+#define PKT_IP_PROTO_GRE         47	/* GRE Protocol number */
 #define PKT_IP_PROTO_ESP         50
 #define PKT_IP_PROTO_AH          51
 #define PKT_IP_PROTO_SKIP        57
@@ -63,64 +62,64 @@
 #define PKT_TCP_HLEN             20
 #define PKT_DOT1X_HLEN            4
 
-#define PKT_EAP_PLEN          10240 /* Dot1x Payload length */
+#define PKT_EAP_PLEN          10240	/* Dot1x Payload length */
 
-#define DHCP_TAG_VLEN           255 /* Tag value always shorter than this */
-#define EAPOL_TAG_VLEN          255 /* Tag value always shorter than this */
+#define DHCP_TAG_VLEN           255	/* Tag value always shorter than this */
+#define EAPOL_TAG_VLEN          255	/* Tag value always shorter than this */
 
 #define DHCP_HTYPE_ETH            1
-#define DHCP_CHADDR_LEN          16 /* Length of client hardware address */
-#define DHCP_SNAME_LEN           64 /* Length of server host name */
-#define DHCP_FILE_LEN           128 /* Length of boot file name*/
-#define DHCP_OPTIONS_LEN        312 /* Length of optional parameters field */
-#define DHCP_MIN_LEN   28+16+64+128 /* Length of packet excluding options */
+#define DHCP_CHADDR_LEN          16	/* Length of client hardware address */
+#define DHCP_SNAME_LEN           64	/* Length of server host name */
+#define DHCP_FILE_LEN           128	/* Length of boot file name */
+#define DHCP_OPTIONS_LEN        312	/* Length of optional parameters field */
+#define DHCP_MIN_LEN   28+16+64+128	/* Length of packet excluding options */
 #define DHCP_LEN  (DHCP_MIN_LEN+DHCP_OPTIONS_LEN)
 
 #define PKT_BUFFER PKT_MAX_LEN
 
 struct pkt_ethhdr_t {
-  uint8_t  dst[PKT_ETH_ALEN];
-  uint8_t  src[PKT_ETH_ALEN];
-  uint16_t prot;
-} __attribute__((packed));
+	uint8_t dst[PKT_ETH_ALEN];
+	uint8_t src[PKT_ETH_ALEN];
+	uint16_t prot;
+} __attribute__ ((packed));
 
 struct pkt_ethhdr8021q_t {
-  uint8_t  dst[PKT_ETH_ALEN];
-  uint8_t  src[PKT_ETH_ALEN];
-  uint16_t tpid;
+	uint8_t dst[PKT_ETH_ALEN];
+	uint8_t src[PKT_ETH_ALEN];
+	uint16_t tpid;
 #define PKT_8021Q_MASK_VID htons(0x0FFF)
 #define PKT_8021Q_MASK_PCP htons(0xE000)
 #define PKT_8021Q_MASK_CFI htons(0x1000)
-  uint16_t pcp_cfi_vid;
-  uint16_t prot;
-} __attribute__((packed));
+	uint16_t pcp_cfi_vid;
+	uint16_t prot;
+} __attribute__ ((packed));
 
 #ifdef ENABLE_IEEE8023
 struct pkt_llc_t {
-  uint8_t dsap;
-  uint8_t ssap;
-  uint8_t cntl;
-} __attribute__((packed));
+	uint8_t dsap;
+	uint8_t ssap;
+	uint8_t cntl;
+} __attribute__ ((packed));
 
 struct pkt_llc_snap_t {
-  uint8_t code[3];
-  uint16_t type;
-} __attribute__((packed));
+	uint8_t code[3];
+	uint16_t type;
+} __attribute__ ((packed));
 #endif
 
 #ifdef ENABLE_PPPOE
 struct pkt_pppoe_hdr_t {
 #define PKT_PPPoE_VERSION 0x11
-  uint8_t version_type;
+	uint8_t version_type;
 #define PKT_PPPoE_PADI 0x09
 #define PKT_PPPoE_PADO 0x07
 #define PKT_PPPoE_PADR 0x19
 #define PKT_PPPoE_PADS 0x65
 #define PKT_PPPoE_PADT 0xa7
-  uint8_t code;
-  uint16_t session_id;
-  uint16_t length;
-} __attribute__((packed));
+	uint8_t code;
+	uint16_t session_id;
+	uint16_t length;
+} __attribute__ ((packed));
 
 struct pkt_pppoe_taghdr_t {
 #define PPPoE_TAG_ServiceName        0x0101
@@ -130,9 +129,9 @@ struct pkt_pppoe_taghdr_t {
 #define PPPoE_TAG_VendorSpecific     0x0105
 #define PPPoE_TAG_ServiceNameError   0x0201
 #define PPPoE_TAG_ACSystemError      0x0202
-  uint16_t type;
-  uint16_t length;
-} __attribute__((packed));
+	uint16_t type;
+	uint16_t length;
+} __attribute__ ((packed));
 
 #define PKT_PPP_PROTO_LCP 0xc021
 
@@ -141,10 +140,10 @@ struct pkt_ppp_lcp_t {
 #define PPP_LCP_ConfigAck 0x02
 #define PPP_LCP_ConfigNak 0x03
 #define PPP_LCP_ConfigReject 0x04
-  uint8_t code;
-  uint8_t id;
-  uint16_t length;
-} __attribute__((packed));
+	uint8_t code;
+	uint8_t id;
+	uint16_t length;
+} __attribute__ ((packed));
 
 struct pkt_lcp_opthdr_t {
 #define PPP_LCP_OptMTU 0x01
@@ -152,24 +151,24 @@ struct pkt_lcp_opthdr_t {
 #define PPP_LCP_OptAuthProto 0x03
 #define PPP_LCP_OptMagic 0x05
 #define PPP_LCP_OptCompress 0x07
-  uint8_t type;
-  uint8_t length;
-} __attribute__((packed));
+	uint8_t type;
+	uint8_t length;
+} __attribute__ ((packed));
 #endif
 
 struct pkt_iphdr_t {
-  uint8_t  version_ihl;
-  uint8_t  tos;
-  uint16_t tot_len;
-  uint16_t id;
-  uint8_t opt_off_high;
-  uint8_t off_low;
-  uint8_t  ttl;
-  uint8_t  protocol;
-  uint16_t check;
-  uint32_t saddr;
-  uint32_t daddr;
-} __attribute__((packed));
+	uint8_t version_ihl;
+	uint8_t tos;
+	uint16_t tot_len;
+	uint16_t id;
+	uint8_t opt_off_high;
+	uint8_t off_low;
+	uint8_t ttl;
+	uint8_t protocol;
+	uint16_t check;
+	uint32_t saddr;
+	uint32_t daddr;
+} __attribute__ ((packed));
 
 #define iphdr_dont_frag(p) ((p)->opt_off_high & 0x40)
 #define iphdr_more_frag(p) ((p)->opt_off_high & 0x20)
@@ -178,28 +177,28 @@ struct pkt_iphdr_t {
 #ifdef ENABLE_IPV6
 #define PKT_IPv6_ALEN 16
 struct pkt_ip6hdr_t {
-  uint32_t ver_class_label; /* 4bit version, 8bit class, 20bit label */
-  uint16_t data_len;
-  uint8_t next_header;
-  uint8_t hop_limit;
-  uint8_t src_addr[PKT_IPv6_ALEN];
-  uint8_t dst_addr[PKT_IPv6_ALEN];
-} __attribute__((packed));
+	uint32_t ver_class_label;	/* 4bit version, 8bit class, 20bit label */
+	uint16_t data_len;
+	uint8_t next_header;
+	uint8_t hop_limit;
+	uint8_t src_addr[PKT_IPv6_ALEN];
+	uint8_t dst_addr[PKT_IPv6_ALEN];
+} __attribute__ ((packed));
 
 struct pkt_ip6pseudo_t {
-  uint8_t src_addr[PKT_IPv6_ALEN];
-  uint8_t dst_addr[PKT_IPv6_ALEN];
-  uint32_t packet_len;
-  uint8_t zero[3];
-  uint8_t next_header;
-} __attribute__((packed));
+	uint8_t src_addr[PKT_IPv6_ALEN];
+	uint8_t dst_addr[PKT_IPv6_ALEN];
+	uint32_t packet_len;
+	uint8_t zero[3];
+	uint8_t next_header;
+} __attribute__ ((packed));
 
 int chksum6(struct pkt_ip6hdr_t *iph);
 
 struct pkt_dhcp6hdr_t {
-  uint8_t type;
-  uint8_t id[3];
-} __attribute__((packed));
+	uint8_t type;
+	uint8_t id[3];
+} __attribute__ ((packed));
 
 #define ICMPv6_NEXT_HEADER 58
 #define ipv6_version(x)  /*lazy!*/ \
@@ -240,30 +239,28 @@ struct pkt_dhcp6hdr_t {
 #endif
 
 struct pkt_ipphdr_t {
-  /* Convenience structure:
-     Same as pkt_iphdr_t, but also
-     with ports (UDP and TCP packets) */
-  uint8_t  version_ihl;
-  uint8_t  tos;
-  uint16_t tot_len;
-  uint16_t id;
-  uint16_t frag_off;
-  uint8_t  ttl;
-  uint8_t  protocol;
-  uint16_t check;
-  uint32_t saddr;
-  uint32_t daddr;
-  uint16_t sport;
-  uint16_t dport;
-} __attribute__((packed));
-
+	/* Convenience structure:
+	   Same as pkt_iphdr_t, but also
+	   with ports (UDP and TCP packets) */
+	uint8_t version_ihl;
+	uint8_t tos;
+	uint16_t tot_len;
+	uint16_t id;
+	uint16_t frag_off;
+	uint8_t ttl;
+	uint8_t protocol;
+	uint16_t check;
+	uint32_t saddr;
+	uint32_t daddr;
+	uint16_t sport;
+	uint16_t dport;
+} __attribute__ ((packed));
 
 struct pkt_icmphdr_t {
-  uint8_t type;
-  uint8_t code;
-  uint16_t check;
-} __attribute__((packed));
-
+	uint8_t type;
+	uint8_t code;
+	uint16_t check;
+} __attribute__ ((packed));
 
 /*
   0      7 8     15 16    23 24    31  
@@ -282,11 +279,11 @@ struct pkt_icmphdr_t {
 */
 
 struct pkt_udphdr_t {
-  uint16_t src;
-  uint16_t dst;
-  uint16_t len;
-  uint16_t check;
-} __attribute__((packed));
+	uint16_t src;
+	uint16_t dst;
+	uint16_t len;
+	uint16_t check;
+} __attribute__ ((packed));
 
 /*
   TCP Header Format
@@ -313,17 +310,17 @@ struct pkt_udphdr_t {
 */
 
 struct pkt_tcphdr_t {
-  uint16_t src;
-  uint16_t dst;
-  uint32_t seq;
-  uint32_t ack;
-  uint8_t  offres;
-  uint8_t  flags;
-  uint16_t win;
-  uint16_t check;
-  uint16_t urgent;
-  uint8_t options[4];
-} __attribute__((packed));
+	uint16_t src;
+	uint16_t dst;
+	uint32_t seq;
+	uint32_t ack;
+	uint8_t offres;
+	uint8_t flags;
+	uint16_t win;
+	uint16_t check;
+	uint16_t urgent;
+	uint8_t options[4];
+} __attribute__ ((packed));
 
 #define TCPHDR_FLAG_FIN (1<<0)
 #define TCPHDR_FLAG_SYN (1<<1)
@@ -370,88 +367,85 @@ struct pkt_tcphdr_t {
    +---------------------------------------------------------------+
 */
 
-struct dhcp_packet_t { /* From RFC 2131 */
-  uint8_t op;       /* 1 Message op code / message type.  1 = BOOTREQUEST, 2 = BOOTREPLY */
-  uint8_t htype;    /* 1 Hardware address type, see ARP section in "Assigned Numbers" RFC */
-  uint8_t hlen;     /* 1 Hardware address length (e.g. '6' for 10mb ethernet).*/
-  uint8_t hops;     /* 1 Client sets to zero, optionally used by relay agents when booting via a relay agent.*/
-  uint32_t xid;     /* 4 Transaction ID, a random number chosen by the client, used by the client and
-		       server to associate messages and responses between a client and a server. */
-  uint16_t secs;    /* 2 Filled in by client, seconds elapsed since client began address acquisition or renewal process.*/
-  uint8_t flags[2]; /* 2  Flags (see figure 2).*/
-  uint32_t ciaddr;  /* 4 Client IP address; only filled in if client is in BOUND, RENEW or REBINDING state
-		       and can respond to ARP requests.*/
-  uint32_t yiaddr;  /* 4 'your' (client) IP address.*/
-  uint32_t siaddr;  /* 4 IP address of next server to use in bootstrap; returned in DHCPOFFER, DHCPACK by server.*/
-  uint32_t giaddr;  /* 4 Relay agent IP address, used in booting via a relay agent.*/
-  uint8_t chaddr[DHCP_CHADDR_LEN];   /* 16 Client hardware address.*/
-  uint8_t sname[DHCP_SNAME_LEN];     /* 64 Optional server host name, null terminated string.*/
-  uint8_t file[DHCP_FILE_LEN];       /* 128 Boot file name, null terminated string; "generic" name or null in
-					DHCPDISCOVER, fully qualified directory-path name in DHCPOFFER.*/
-  uint8_t options[DHCP_OPTIONS_LEN]; /* var Optional parameters field.  See the options documents for a list
-					of defined options.*/
-} __attribute__((packed));
-
+struct dhcp_packet_t {		/* From RFC 2131 */
+	uint8_t op;		/* 1 Message op code / message type.  1 = BOOTREQUEST, 2 = BOOTREPLY */
+	uint8_t htype;		/* 1 Hardware address type, see ARP section in "Assigned Numbers" RFC */
+	uint8_t hlen;		/* 1 Hardware address length (e.g. '6' for 10mb ethernet). */
+	uint8_t hops;		/* 1 Client sets to zero, optionally used by relay agents when booting via a relay agent. */
+	uint32_t xid;		/* 4 Transaction ID, a random number chosen by the client, used by the client and
+				   server to associate messages and responses between a client and a server. */
+	uint16_t secs;		/* 2 Filled in by client, seconds elapsed since client began address acquisition or renewal process. */
+	uint8_t flags[2];	/* 2  Flags (see figure 2). */
+	uint32_t ciaddr;	/* 4 Client IP address; only filled in if client is in BOUND, RENEW or REBINDING state
+				   and can respond to ARP requests. */
+	uint32_t yiaddr;	/* 4 'your' (client) IP address. */
+	uint32_t siaddr;	/* 4 IP address of next server to use in bootstrap; returned in DHCPOFFER, DHCPACK by server. */
+	uint32_t giaddr;	/* 4 Relay agent IP address, used in booting via a relay agent. */
+	uint8_t chaddr[DHCP_CHADDR_LEN];	/* 16 Client hardware address. */
+	uint8_t sname[DHCP_SNAME_LEN];	/* 64 Optional server host name, null terminated string. */
+	uint8_t file[DHCP_FILE_LEN];	/* 128 Boot file name, null terminated string; "generic" name or null in
+					   DHCPDISCOVER, fully qualified directory-path name in DHCPOFFER. */
+	uint8_t options[DHCP_OPTIONS_LEN];	/* var Optional parameters field.  See the options documents for a list
+						   of defined options. */
+} __attribute__ ((packed));
 
 struct dhcp_tag_t {
-  uint8_t t;
-  uint8_t l;
-  uint8_t v[DHCP_TAG_VLEN];
-} __attribute__((packed));
+	uint8_t t;
+	uint8_t l;
+	uint8_t v[DHCP_TAG_VLEN];
+} __attribute__ ((packed));
 
+struct arp_packet_t {		/* From RFC 826 */
+	uint16_t hrd;		/* 16.bit: (ar$hrd) Hardware address space (e.g.,
+				   Ethernet, Packet Radio Net.) */
+	uint16_t pro;		/* 16.bit: (ar$pro) Protocol address space.  For
+				   Ethernet hardware, this is from the set of type
+				   fields ether_typ$<protocol>. */
+	uint8_t hln;		/* 8.bit: (ar$hln) byte length of each hardware address */
+	uint8_t pln;		/* 8.bit: (ar$pln) byte length of each protocol address */
+	uint16_t op;		/* 16.bit: (ar$op)  opcode (ares_op$REQUEST | ares_op$REPLY) */
+	uint8_t sha[PKT_ETH_ALEN];	/* nbytes: (ar$sha) Hardware address of
+					   sender of this packet, n from the ar$hln field. */
+	uint8_t spa[PKT_IP_ALEN];	/* mbytes: (ar$spa) Protocol address of
+					   sender of this packet, m from the ar$pln field. */
+	uint8_t tha[PKT_ETH_ALEN];	/* nbytes: (ar$tha) Hardware address of
+					   target of this packet (if known). */
+	uint8_t tpa[PKT_IP_ALEN];	/* mbytes: (ar$tpa) Protocol address of
+					   target. */
+} __attribute__ ((packed));
 
-struct arp_packet_t { /* From RFC 826 */
-  uint16_t hrd; /* 16.bit: (ar$hrd) Hardware address space (e.g.,
-		    Ethernet, Packet Radio Net.) */
-  uint16_t pro; /* 16.bit: (ar$pro) Protocol address space.  For
-		    Ethernet hardware, this is from the set of type
-		    fields ether_typ$<protocol>. */
-  uint8_t hln;  /* 8.bit: (ar$hln) byte length of each hardware address */
-  uint8_t pln;  /* 8.bit: (ar$pln) byte length of each protocol address */
-  uint16_t op;  /* 16.bit: (ar$op)  opcode (ares_op$REQUEST | ares_op$REPLY) */
-  uint8_t sha[PKT_ETH_ALEN]; /* nbytes: (ar$sha) Hardware address of
-		    sender of this packet, n from the ar$hln field. */
-  uint8_t spa[PKT_IP_ALEN];  /* mbytes: (ar$spa) Protocol address of
-		    sender of this packet, m from the ar$pln field. */
-  uint8_t tha[PKT_ETH_ALEN]; /* nbytes: (ar$tha) Hardware address of
-		  target of this packet (if known). */
-  uint8_t tpa[PKT_IP_ALEN]; /* mbytes: (ar$tpa) Protocol address of
-				 target.*/
-} __attribute__((packed));
-
-
-struct dns_packet_t { /* From RFC 1035 */
-  uint16_t id;      /* 16 bit: Generated by requester. Copied in reply */
-  uint16_t flags;   /* 16 bit: Flags */
-  uint16_t qdcount; /* 16 bit: Number of questions */
-  uint16_t ancount; /* 16 bit: Number of answer records */
-  uint16_t nscount; /* 16 bit: Number of name servers */
-  uint16_t arcount; /* 16 bit: Number of additional records */
-  uint8_t  records[PKT_IP_PLEN];
-} __attribute__((packed));
+struct dns_packet_t {		/* From RFC 1035 */
+	uint16_t id;		/* 16 bit: Generated by requester. Copied in reply */
+	uint16_t flags;		/* 16 bit: Flags */
+	uint16_t qdcount;	/* 16 bit: Number of questions */
+	uint16_t ancount;	/* 16 bit: Number of answer records */
+	uint16_t nscount;	/* 16 bit: Number of name servers */
+	uint16_t arcount;	/* 16 bit: Number of additional records */
+	uint8_t records[PKT_IP_PLEN];
+} __attribute__ ((packed));
 
 struct pkt_dot1xhdr_t {
-  uint8_t  ver;
-  uint8_t  type;
-  uint16_t len;
-} __attribute__((packed));
+	uint8_t ver;
+	uint8_t type;
+	uint16_t len;
+} __attribute__ ((packed));
 
 struct eap_packet_t {
-  uint8_t  code;
-  uint8_t  id;
-  uint16_t length;
-  uint8_t  type;
-  uint8_t  payload[PKT_EAP_PLEN];
-} __attribute__((packed));
+	uint8_t code;
+	uint8_t id;
+	uint16_t length;
+	uint8_t type;
+	uint8_t payload[PKT_EAP_PLEN];
+} __attribute__ ((packed));
 
 #ifdef ENABLE_CLUSTER
 struct pkt_chillihdr_t {
-  uint8_t from;
-  uint8_t type;
-  struct in_addr addr;
-  uint8_t mac[PKT_ETH_ALEN];
-  uint8_t state;
-} __attribute__((packed));
+	uint8_t from;
+	uint8_t type;
+	struct in_addr addr;
+	uint8_t mac[PKT_ETH_ALEN];
+	uint8_t state;
+} __attribute__ ((packed));
 #define CHILLI_PEER_INIT    1
 #define CHILLI_PEER_HELLO   2
 #define CHILLI_PEER_GOODBYE 3
@@ -536,14 +530,14 @@ struct pkt_chillihdr_t {
 #define chilli_ethhdr(pkt)((struct pkt_chillihdr_t *)(((uint8_t*)(pkt)) + sizeofeth(pkt)))
 
 struct eapol_tag_t {
-  uint8_t t;
-  uint8_t l;
-  uint8_t v[EAPOL_TAG_VLEN];
-} __attribute__((packed));
+	uint8_t t;
+	uint8_t l;
+	uint8_t v[EAPOL_TAG_VLEN];
+} __attribute__ ((packed));
 
 int chksum(struct pkt_iphdr_t *iph);
 int pkt_shape_tcpwin(struct pkt_iphdr_t *iph, uint16_t win);
-int pkt_shape_tcpmss(uint8_t *packet, size_t *length);
+int pkt_shape_tcpmss(uint8_t * packet, size_t * length);
 
 #if defined(ENABLE_IPV6)
 #define PKT_BUFFER_IPOFF  (sizeof(struct pkt_ethhdr8021q_t)+20)
@@ -552,10 +546,10 @@ int pkt_shape_tcpmss(uint8_t *packet, size_t *length);
 #endif
 
 struct pkt_buffer {
-  uint8_t *   buf;
-  size_t      buflen;
-  size_t      offset;
-  size_t      length;
+	uint8_t *buf;
+	size_t buflen;
+	size_t offset;
+	size_t length;
 };
 
 #define pkt_buffer_init(pb, b, blen, off)	\

@@ -17,7 +17,6 @@
  * 
  */
 
-
 #ifndef _RTMON_H
 #define _RTMON_H
 
@@ -28,50 +27,50 @@
 #define RTMON_REMOVE    (1<<2)
 
 struct rtmon_iface {
-  int index;
-  uint16_t protocol;
-  uint8_t hwaddr[PKT_ETH_ALEN];
-  char devname[IFNAMSIZ+1];
-  int devflags;
-  int mtu;
+	int index;
+	uint16_t protocol;
+	uint8_t hwaddr[PKT_ETH_ALEN];
+	char devname[IFNAMSIZ + 1];
+	int devflags;
+	int mtu;
 
-  struct in_addr address;
-  struct in_addr network;
-  struct in_addr netmask;
-  struct in_addr broadcast;
-  struct in_addr gateway;
+	struct in_addr address;
+	struct in_addr network;
+	struct in_addr netmask;
+	struct in_addr broadcast;
+	struct in_addr gateway;
 
-  char has_data;
+	char has_data;
 };
 
 struct rtmon_route {
-  int if_index;
+	int if_index;
 
-  struct in_addr destination;
-  struct in_addr netmask;
-  struct in_addr gateway;
+	struct in_addr destination;
+	struct in_addr netmask;
+	struct in_addr gateway;
 
-  uint8_t gwaddr[PKT_ETH_ALEN];
+	uint8_t gwaddr[PKT_ETH_ALEN];
 
-  char has_data;
+	char has_data;
 };
 
 struct rtmon_t;
 
-typedef int (*rtmon_callback)(struct rtmon_t *rtmon, 
-			      struct rtmon_iface *iface,
-			      struct rtmon_route *route);
+typedef int (*rtmon_callback) (struct rtmon_t * rtmon,
+			       struct rtmon_iface * iface,
+			       struct rtmon_route * route);
 
 struct rtmon_t {
-  int fd;
+	int fd;
 
-  rtmon_callback cb;
+	rtmon_callback cb;
 
-  struct rtmon_iface *_ifaces;
-  int _iface_sz;
+	struct rtmon_iface *_ifaces;
+	int _iface_sz;
 
-  struct rtmon_route *_routes;
-  int _route_sz;
+	struct rtmon_route *_routes;
+	int _route_sz;
 };
 
 int rtmon_init(struct rtmon_t *rtmon, rtmon_callback func);

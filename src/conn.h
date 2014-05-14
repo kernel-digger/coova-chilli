@@ -28,49 +28,49 @@
 
 struct conn_t;
 
-typedef int (*conn_handler)(struct conn_t *, void *ctx);
+typedef int (*conn_handler) (struct conn_t *, void *ctx);
 
 struct conn_t {
-  struct sockaddr_in peer;
+	struct sockaddr_in peer;
 
-  int sock;
-  bstring write_buf;
-  int write_pos;
-  bstring read_buf;
-  int read_pos;
+	int sock;
+	bstring write_buf;
+	int write_pos;
+	bstring read_buf;
+	int read_pos;
 
-  time_t start_time;
+	time_t start_time;
 
 #ifdef HAVE_SSL
-  openssl_con * sslcon;
+	openssl_con *sslcon;
 #endif
 
-  uint8_t connected:1;
-  uint8_t error:1;
+	uint8_t connected:1;
+	uint8_t error:1;
 
-  conn_handler read_handler;
-  void * read_handler_ctx;
-  conn_handler done_handler;
-  void * done_handler_ctx;
+	conn_handler read_handler;
+	void *read_handler_ctx;
+	conn_handler done_handler;
+	void *done_handler_ctx;
 };
 
-int conn_update(struct conn_t *conn, fd_set *r, fd_set *w, fd_set *e);
+int conn_update(struct conn_t *conn, fd_set * r, fd_set * w, fd_set * e);
 void conn_bstring_readhandler(struct conn_t *conn, bstring data);
 void conn_set_readhandler(struct conn_t *conn, conn_handler handler, void *ctx);
 void conn_set_donehandler(struct conn_t *conn, conn_handler handler, void *ctx);
 
 int conn_sock(struct conn_t *conn, struct in_addr *addr, int port);
-int conn_setup(struct conn_t *conn, char *hostname, int port, 
+int conn_setup(struct conn_t *conn, char *hostname, int port,
 	       bstring bwrite, bstring bread);
 void conn_finish(struct conn_t *conn);
 
-int conn_fd(struct conn_t *conn, fd_set *r, fd_set *w, fd_set *e, int *m);
+int conn_fd(struct conn_t *conn, fd_set * r, fd_set * w, fd_set * e, int *m);
 int conn_close(struct conn_t *conn);
 
 void conn_bstring_readhandler(struct conn_t *conn, bstring data);
 
-int conn_select_fd(struct conn_t *conn, select_ctx *sctx);
+int conn_select_fd(struct conn_t *conn, select_ctx * sctx);
 int conn_update_write(struct conn_t *conn);
-int conn_select_update(struct conn_t *conn, select_ctx *sctx);
+int conn_select_update(struct conn_t *conn, select_ctx * sctx);
 
 #endif

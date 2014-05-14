@@ -25,21 +25,20 @@
 #define DNS_DEFAULT_MODE 0
 #define DNS_MDNS_MODE 1
 
-int 
-dns_getname(uint8_t **pktp, size_t *left,
-	    char *name, size_t namesz, size_t *nameln);
+int
+dns_getname(uint8_t ** pktp, size_t * left,
+	    char *name, size_t namesz, size_t * nameln);
 
 ssize_t
 dns_fullname(char *data, size_t dlen,
-	     uint8_t *res, size_t reslen,
-	     uint8_t *opkt, size_t olen, 
-	     int lvl);
+	     uint8_t * res, size_t reslen,
+	     uint8_t * opkt, size_t olen, int lvl);
 
-int 
-dns_copy_res(struct dhcp_conn_t *conn, int q, 
-	     uint8_t **pktp, size_t *left, 
-	     uint8_t *opkt, size_t olen,
-	     uint8_t *question, size_t qsize,
+int
+dns_copy_res(struct dhcp_conn_t *conn, int q,
+	     uint8_t ** pktp, size_t * left,
+	     uint8_t * opkt, size_t olen,
+	     uint8_t * question, size_t qsize,
 	     int isReq, int *qmatch, int *modified, int mode);
 
 #endif

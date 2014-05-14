@@ -21,64 +21,61 @@
 #define _CHILLI_MODULE_H
 
 struct chilli_module {
-  void *lib;
+	void *lib;
 
-  /*
-   *   Modules shall return an integer code. 
-   *   We shall use the lower 8 bits as a main code,
-   *   the rest of the integer available for handler
-   *   specific flags. 
-   */
+	/*
+	 *   Modules shall return an integer code. 
+	 *   We shall use the lower 8 bits as a main code,
+	 *   the rest of the integer available for handler
+	 *   specific flags. 
+	 */
 
 # define CHILLI_MOD_OK        0
 # define CHILLI_MOD_ERROR    -1
 # define CHILLI_MOD_CONTINUE  1
 # define CHILLI_MOD_BREAK     2
 
-  int (* initialize)      (char *, char isReload);
-  int (* net_select)      (select_ctx *sctx);
+	int (*initialize) (char *, char isReload);
+	int (*net_select) (select_ctx * sctx);
 
 # define CHILLI_MOD_REDIR_SKIP_RADIUS (1 << 8)
-  int (* redir_login)     (struct redir_t *, 
-			   struct redir_conn_t *,
-			   struct redir_socket_t *);
+	int (*redir_login) (struct redir_t *,
+			    struct redir_conn_t *, struct redir_socket_t *);
 
-  int (* dhcp_connect)    (struct app_conn_t *, 
-			   struct dhcp_conn_t *);
+	int (*dhcp_connect) (struct app_conn_t *, struct dhcp_conn_t *);
 
-  int (* dhcp_disconnect) (struct app_conn_t *, 
-			   struct dhcp_conn_t *);
+	int (*dhcp_disconnect) (struct app_conn_t *, struct dhcp_conn_t *);
 
-  int (* session_start)   (struct app_conn_t *);
-  int (* session_update)  (struct app_conn_t *);
-  int (* session_stop)    (struct app_conn_t *);
+	int (*session_start) (struct app_conn_t *);
+	int (*session_update) (struct app_conn_t *);
+	int (*session_stop) (struct app_conn_t *);
 
 #define CHILLI_CMDSOCK_ERR -1
 #define CHILLI_CMDSOCK_OK   0
-  int (* cmdsock_handler) 
-  (struct cmdsock_request *req, bstring s, int sock);
+	int (*cmdsock_handler)
+	 (struct cmdsock_request * req, bstring s, int sock);
 
-  /* lower level handers */
+	/* lower level handers */
 #define CHILLI_DNS_ERR   -1
 #define CHILLI_DNS_DROP   0
 #define CHILLI_DNS_OK     1
 #define CHILLI_DNS_MOD    2
 #define CHILLI_DNS_NAK    3
-  int (* dns_handler) 
-  (struct app_conn_t *, struct dhcp_conn_t *, uint8_t *, size_t *, int);
+	int (*dns_handler)
+	 (struct app_conn_t *, struct dhcp_conn_t *, uint8_t *, size_t *, int);
 
 #define CHILLI_RADIUS_ERR  -1
 #define CHILLI_RADIUS_OK    0
-  int (* radius_handler)  
-  (struct radius_t *radius, struct app_conn_t *conn,
-   struct radius_packet_t *req, struct radius_packet_t *resp);
+	int (*radius_handler)
+	 (struct radius_t * radius, struct app_conn_t * conn,
+	  struct radius_packet_t * req, struct radius_packet_t * resp);
 
-  /* lower level handers */
-  size_t (* dhcp_handler) 
-  (int, struct app_conn_t *, struct dhcp_conn_t *, 
-   uint8_t *, size_t, uint8_t *, size_t);
+	/* lower level handers */
+	 size_t(*dhcp_handler)
+	 (int, struct app_conn_t *, struct dhcp_conn_t *,
+	  uint8_t *, size_t, uint8_t *, size_t);
 
-  int (* destroy)         (char isReload);
+	int (*destroy) (char isReload);
 };
 
 #define chilli_mod_state(x) ((x)&0xff)

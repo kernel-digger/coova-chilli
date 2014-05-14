@@ -18,38 +18,38 @@
  * 
  */
 
-
 #ifndef _IPHASH_H
 #define _IPHASH_H
 
 struct iphash_t;
 struct iphashm_t;
 
-typedef int (*iphash_callback)(int, struct iphash_t *, struct iphashm_t *);
+typedef int (*iphash_callback) (int, struct iphash_t *, struct iphashm_t *);
 
 struct iphash_t {
-  int listsize;                  /* Total number of addresses */
-  int hashsize;                  /* Size of hash table */
-  int hashlog;                   /* Log2 size of hash table */
-  int hashmask;                  /* Bitmask for calculating hash */
-  struct iphashm_t ** member;    /* Listsize array of members */
-  struct iphashm_t ** hash;      /* Hashsize array of pointer to member */
-  struct iphashm_t  * first;     /* Pointer to first free member */
-  struct iphashm_t  * last;      /* Pointer to last free member */
-  iphash_callback callback;
+	int listsize;		/* Total number of addresses */
+	int hashsize;		/* Size of hash table */
+	int hashlog;		/* Log2 size of hash table */
+	int hashmask;		/* Bitmask for calculating hash */
+	struct iphashm_t **member;	/* Listsize array of members */
+	struct iphashm_t **hash;	/* Hashsize array of pointer to member */
+	struct iphashm_t *first;	/* Pointer to first free member */
+	struct iphashm_t *last;	/* Pointer to last free member */
+	iphash_callback callback;
 };
 
 #define IPHASH_INUSE (1<<0)
 
 struct iphashm_t {
-  struct in_addr addr;           /* IP address of this member */
-  uint16_t port;                 /* port */
-  uint8_t flags;                 /* flags */
-  struct iphashm_t *nexthash;    /* Linked list part of hash table */
-  struct iphashm_t *prev, *next; /* Linked list of free dynamic or static */
-  time_t last_used;              /* Last used timestamp */
+	struct in_addr addr;	/* IP address of this member */
+	uint16_t port;		/* port */
+	uint8_t flags;		/* flags */
+	struct iphashm_t *nexthash;	/* Linked list part of hash table */
+	struct iphashm_t *prev, *next;	/* Linked list of free dynamic or static */
+	time_t last_used;	/* Last used timestamp */
 };
 
-int iphash_new(struct iphash_t **this, struct iphashm_t **member, int listsize, iphash_callback callback);
+int iphash_new(struct iphash_t **this, struct iphashm_t **member, int listsize,
+	       iphash_callback callback);
 
-#endif	/* !_IPHASH_H */
+#endif /* !_IPHASH_H */

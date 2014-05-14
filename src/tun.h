@@ -18,7 +18,6 @@
  * 
  */
 
-
 #ifndef _TUN_H
 #define _TUN_H
 
@@ -30,17 +29,17 @@
  *************************************************************/
 
 struct tun_t {
-  int debug;
-  int addrs;   /* Number of allocated IP addresses */
-  int routes;  /* One if we allocated an automatic route */
-  int routeidx; /* default route interface index */
-  int (*cb_ind) (struct tun_t *tun, struct pkt_buffer *pb, int idx);
+	int debug;
+	int addrs;		/* Number of allocated IP addresses */
+	int routes;		/* One if we allocated an automatic route */
+	int routeidx;		/* default route interface index */
+	int (*cb_ind) (struct tun_t * tun, struct pkt_buffer * pb, int idx);
 
 #ifdef ENABLE_MULTIROUTE
-  select_ctx *sctx;
+	select_ctx *sctx;
 
-  int _interface_count;
-  struct _net_interface _interfaces[TUN_MAX_INTERFACES];
+	int _interface_count;
+	struct _net_interface _interfaces[TUN_MAX_INTERFACES];
 
 #define tun(x,i) ((x)->_interfaces[(i)])
 #define tuntap(x) tun((x),0)
@@ -60,7 +59,7 @@ struct tun_t {
       net_close(&(tun)->_interfaces[i]);}
 
 #else
-  struct _net_interface _tuntap;
+	struct _net_interface _tuntap;
 
 #define tun(x,i) ((x)->_tuntap)
 #define tuntap(x) tun((x),0)
@@ -71,37 +70,40 @@ struct tun_t {
 #define tun_close(tun) net_close(&(tun)->_tuntap)
 #endif
 
-  void *table;
+	void *table;
 };
 
 int tun_new(struct tun_t **tun);
 int tun_free(struct tun_t *this);
 int tun_decaps(struct tun_t *this, int idx);
-int tun_encaps(struct tun_t *this, uint8_t *pack, size_t len, int idx);
-int tun_write(struct tun_t *tun, uint8_t *pack, size_t len, int idx);
+int tun_encaps(struct tun_t *this, uint8_t * pack, size_t len, int idx);
+int tun_write(struct tun_t *tun, uint8_t * pack, size_t len, int idx);
 
 /*int tun_addaddr(struct tun_t *this, struct in_addr *addr, struct in_addr *dstaddr, struct in_addr *netmask);
 int tun_setaddr(struct tun_t *this, struct in_addr *our_adr, struct in_addr *his_adr, struct in_addr *net_mask);
 int tun_addroute(struct tun_t *this, struct in_addr *dst, struct in_addr *gateway, struct in_addr *mask);
 int tun_delroute(struct tun_t *this, struct in_addr *dst, struct in_addr *gateway, struct in_addr *mask);*/
 
-int tun_set_cb_ind(struct tun_t *this, int (*cb_ind) (struct tun_t *tun, struct pkt_buffer *pb, int idx));
+int tun_set_cb_ind(struct tun_t *this,
+		   int (*cb_ind) (struct tun_t * tun, struct pkt_buffer * pb,
+				  int idx));
 
-int tun_setaddr(struct tun_t *this, struct in_addr *addr, struct in_addr *dstaddr, struct in_addr *netmask);
+int tun_setaddr(struct tun_t *this, struct in_addr *addr,
+		struct in_addr *dstaddr, struct in_addr *netmask);
 
-int tun_runscript(struct tun_t *tun, char* script, int wait);
+int tun_runscript(struct tun_t *tun, char *script, int wait);
 
 #ifdef ENABLE_MULTIROUTE
 net_interface *tun_nextif(struct tun_t *tun);
-net_interface *tun_newif(struct tun_t *tun, net_interface *netif);
+net_interface *tun_newif(struct tun_t *tun, net_interface * netif);
 int tun_name2idx(struct tun_t *tun, char *name);
 void tun_delif(struct tun_t *tun, int ifindex);
 #endif
 
 #ifdef ENABLE_NETNAT
-int nat_init(net_interface *iface);
-int nat_do(struct tun_t *this, int idx, uint8_t *pack, size_t len);
-int nat_undo(struct tun_t *this, int idx, uint8_t *pack, size_t len);
+int nat_init(net_interface * iface);
+int nat_do(struct tun_t *this, int idx, uint8_t * pack, size_t len);
+int nat_undo(struct tun_t *this, int idx, uint8_t * pack, size_t len);
 #endif
 
-#endif	/* !_TUN_H */
+#endif /* !_TUN_H */

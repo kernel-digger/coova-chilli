@@ -26,27 +26,26 @@
 #include <assert.h>
 
 #ifdef HAVE_SFHASH
-  extern uint32_t SuperFastHash(const char * data, int len, uint32_t hash);
+extern uint32_t SuperFastHash(const char *data, int len, uint32_t hash);
 #elif HAVE_LOOKUP3
 #if LITTLE_ENDIAN
-  extern uint32_t hashlittle(const void *key, size_t length, uint32_t initval);
+extern uint32_t hashlittle(const void *key, size_t length, uint32_t initval);
 #elif BIG_ENDIAN
-  extern uint32_t hashbig(const void *key, size_t length, uint32_t initval);
+extern uint32_t hashbig(const void *key, size_t length, uint32_t initval);
 #endif
 #else
 #error No hashing function found.
 #endif
 
-uint32_t lookup(uint8_t *k,  uint32_t length,  uint32_t initval)
+uint32_t lookup(uint8_t * k, uint32_t length, uint32_t initval)
 {
 #ifdef HAVE_SFHASH
-  return SuperFastHash((const char*)k, length, initval);
+	return SuperFastHash((const char *)k, length, initval);
 #elif HAVE_LOOKUP3
 #if LITTLE_ENDIAN
-  return hashlittle(k, length, initval);
+	return hashlittle(k, length, initval);
 #elif BIG_ENDIAN
-  return hashbig(k, length, initval);
+	return hashbig(k, length, initval);
 #endif
 #endif
 }
-

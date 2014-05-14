@@ -39,16 +39,16 @@ extern int sys_ioprio_set(int, int, int);
 extern int sys_ioprio_get(int, int);
 
 enum {
-        IOPRIO_CLASS_NONE,
-        IOPRIO_CLASS_RT,
-        IOPRIO_CLASS_BE,
-        IOPRIO_CLASS_IDLE,
+	IOPRIO_CLASS_NONE,
+	IOPRIO_CLASS_RT,
+	IOPRIO_CLASS_BE,
+	IOPRIO_CLASS_IDLE,
 };
 
 enum {
-        IOPRIO_WHO_PROCESS = 1,
-        IOPRIO_WHO_PGRP,
-        IOPRIO_WHO_USER,
+	IOPRIO_WHO_PROCESS = 1,
+	IOPRIO_WHO_PGRP,
+	IOPRIO_WHO_USER,
 };
 
 #define IOPRIO_CLASS_SHIFT      13
@@ -72,34 +72,35 @@ enum {
 
 int main(int argc, char **argv)
 {
-  int ret;
+	int ret;
 #if defined(__linux__)
-  char *ev;
+	char *ev;
 #endif
 
 #ifdef MTRACE
-  mtrace();  /* Turn on mtrace function */
+	mtrace();		/* Turn on mtrace function */
 #endif
 
 #if defined(__linux__)
-  if ((ev = getenv("CHILLI_PRIORITY")) != NULL) {
-    if (setpriority(PRIO_PROCESS, getpid(), atoi(ev))) {
-      perror("setpriority");
-    }
-  }    
-
+	if ((ev = getenv("CHILLI_PRIORITY")) != NULL) {
+		if (setpriority(PRIO_PROCESS, getpid(), atoi(ev))) {
+			perror("setpriority");
+		}
+	}
 #ifdef __NR_ioprio_set
-  if ((ev = getenv("CHILLI_IOPRIO_RT")) != NULL) {
-    if (syscall(__NR_ioprio_set, IOPRIO_WHO_PROCESS, getpid(), atoi(ev) | IOPRIO_CLASS_RT << IOPRIO_CLASS_SHIFT) == -1) {
-      perror("ioprio_set");
-    }
-  }
+	if ((ev = getenv("CHILLI_IOPRIO_RT")) != NULL) {
+		if (syscall
+		    (__NR_ioprio_set, IOPRIO_WHO_PROCESS, getpid(),
+		     atoi(ev) | IOPRIO_CLASS_RT << IOPRIO_CLASS_SHIFT) == -1) {
+			perror("ioprio_set");
+		}
+	}
 #endif
 #endif
 
-  ret = chilli_main(argc, argv);
+	ret = chilli_main(argc, argv);
 #ifdef MTRACE
-  muntrace();  /* Turn off mtrace function */
+	muntrace();		/* Turn off mtrace function */
 #endif
-  return ret;
+	return ret;
 }

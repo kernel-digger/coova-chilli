@@ -38,68 +38,69 @@ struct options_t _options;
 
 static int debug = 1;
 static int chilli_pid = 0;
-static char * chilli_conf = "/tmp/local.conf";
+static char *chilli_conf = "/tmp/local.conf";
 
-static int proc_route(struct rtmon_t *rtmon, 
-		      struct rtmon_iface *iface,
-		      struct rtmon_route *route) {
+static int proc_route(struct rtmon_t *rtmon,
+		      struct rtmon_iface *iface, struct rtmon_route *route)
+{
 
-  rtmon_print_ifaces(rtmon, 1);
-  rtmon_print_routes(rtmon, 1);
-  return 0;
+	rtmon_print_ifaces(rtmon, 1);
+	rtmon_print_routes(rtmon, 1);
+	return 0;
 }
 
-int main(int argc, char *argv[]) {
-  int keep_going = 1;
-  int reload_config = 1;
-  int i;
+int main(int argc, char *argv[])
+{
+	int keep_going = 1;
+	int reload_config = 1;
+	int i;
 
-  struct rtmon_t _rtmon;
+	struct rtmon_t _rtmon;
 
-  /*int selfpipe = selfpipe_init();*/
+	/*int selfpipe = selfpipe_init(); */
 
-  memset(&_options, 0, sizeof(_options));
+	memset(&_options, 0, sizeof(_options));
 
-  if (rtmon_init(&_rtmon, proc_route)) {
-    err(1,"netlink");
-  }
+	if (rtmon_init(&_rtmon, proc_route)) {
+		err(1, "netlink");
+	}
 
-  for (i=1; i < argc; i++) {
-    if (strcmp(argv[i], "-debug")==0) {
-      debug = 1;
-    } else if (strcmp(argv[i], "-file")==0) {
-      chilli_conf = argv[i+1];
-    } else if (strcmp(argv[i], "-pid")==0) {
-      chilli_pid = atoi(argv[i+1]);
-    }
-  }
+	for (i = 1; i < argc; i++) {
+		if (strcmp(argv[i], "-debug") == 0) {
+			debug = 1;
+		} else if (strcmp(argv[i], "-file") == 0) {
+			chilli_conf = argv[i + 1];
+		} else if (strcmp(argv[i], "-pid") == 0) {
+			chilli_pid = atoi(argv[i + 1]);
+		}
+	}
 
-  _options.foreground = debug;
-  _options.debug = debug;
+	_options.foreground = debug;
+	_options.debug = debug;
 
-  log_dbg("running");
+	log_dbg("running");
 
-  chilli_signals(&keep_going, &reload_config);
+	chilli_signals(&keep_going, &reload_config);
 
-  rtmon_discover_ifaces(&_rtmon);
-  rtmon_discover_routes(&_rtmon);
+	rtmon_discover_ifaces(&_rtmon);
+	rtmon_discover_routes(&_rtmon);
 
-  if (debug) {
-    rtmon_print_ifaces(&_rtmon, 1);
-    rtmon_print_routes(&_rtmon, 1);
-  }
+	if (debug) {
+		rtmon_print_ifaces(&_rtmon, 1);
+		rtmon_print_routes(&_rtmon, 1);
+	}
 
-  rtmon_check_updates(&_rtmon);
-  
-  while (keep_going) {
-    /* select */
+	rtmon_check_updates(&_rtmon);
 
-    /* check selfpipe */
+	while (keep_going) {
+		/* select */
 
-    rtmon_read_event(&_rtmon);
-  }
+		/* check selfpipe */
 
-  /* selfpipe_finish();*/
+		rtmon_read_event(&_rtmon);
+	}
 
-  return 0;
+	/* selfpipe_finish(); */
+
+	return 0;
 }

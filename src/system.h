@@ -133,7 +133,7 @@
 #include <linux/un.h>
 #endif
 
-#elif defined (__FreeBSD__)  || defined (__APPLE__) || defined (__OpenBSD__) || defined (__NetBSD__) 
+#elif defined (__FreeBSD__)  || defined (__APPLE__) || defined (__OpenBSD__) || defined (__NetBSD__)
 #include <net/if.h>
 #include <net/bpf.h>
 #include <net/if_dl.h>
@@ -185,7 +185,7 @@
 #endif
 
 #ifdef MTRACE
-#include <mcheck.h> 
+#include <mcheck.h>
 #endif
 
 #ifdef DMALLOC
@@ -259,9 +259,9 @@
 #define safe_snprintf portable_snprintf
 char *safe_strncpy(char *dst, const char *src, size_t size);
 
-int safe_accept(int fd, struct sockaddr *sa, socklen_t *lenptr);
-int safe_select(int nfds, fd_set *readfds, fd_set *writefds,
-		fd_set *exceptfds, struct timeval *timeout);
+int safe_accept(int fd, struct sockaddr *sa, socklen_t * lenptr);
+int safe_select(int nfds, fd_set * readfds, fd_set * writefds,
+		fd_set * exceptfds, struct timeval *timeout);
 #ifdef USING_POLL
 #ifdef HAVE_SYS_EPOLL_H
 int safe_epoll_wait(int epfd, struct epoll_event *events,
@@ -277,10 +277,10 @@ int safe_recv(int s, void *b, size_t blen, int flags);
 int safe_send(int s, void *b, size_t blen, int flags);
 int safe_recvmsg(int sockfd, struct msghdr *msg, int flags);
 int safe_recvfrom(int sockfd, void *buf, size_t len, int flags,
-		  struct sockaddr *src_addr, socklen_t *addrlen);
+		  struct sockaddr *src_addr, socklen_t * addrlen);
 int safe_sendto(int s, const void *b, size_t blen, int flags,
 		const struct sockaddr *dest_addr, socklen_t addrlen);
-int safe_close (int fd);
+int safe_close(int fd);
 pid_t safe_fork();
 
 #ifndef TEMP_FAILURE_RETRY

@@ -68,93 +68,93 @@
 
 /* Struct information for each connection */
 struct app_conn_t {
-  
-  struct app_conn_t *next;    /* Next in linked list. 0: Last */
-  struct app_conn_t *prev;    /* Previous in linked list. 0: First */
 
-  /* Pointers to protocol handlers */
-  void *uplink;                  /* Uplink network interface (Internet) */
-  void *dnlink;                  /* Downlink network interface (Wireless) */
+	struct app_conn_t *next;	/* Next in linked list. 0: Last */
+	struct app_conn_t *prev;	/* Previous in linked list. 0: First */
 
-  uint8_t inuse:1;
-  uint8_t is_adminsession:1;
-  uint8_t uamabort:1;
-  uint8_t uamexit:1;
+	/* Pointers to protocol handlers */
+	void *uplink;		/* Uplink network interface (Internet) */
+	void *dnlink;		/* Downlink network interface (Wireless) */
 
-  /* Management of connections */
-  int unit;
-  int dnprot;                    /* Downlink protocol */
-  time_t rt;
+	uint8_t inuse:1;
+	uint8_t is_adminsession:1;
+	uint8_t uamabort:1;
+	uint8_t uamexit:1;
+
+	/* Management of connections */
+	int unit;
+	int dnprot;		/* Downlink protocol */
+	time_t rt;
 
 #if(0)
 #define s_params  params[0]
 #define ss_params params[1]
 #define s_state   state[0]
 #define ss_state  state[1]
-  struct session_params params[2];        /* Session parameters */
-  struct session_state  state[2];         /* Session state */
-  char has_subsession;
+	struct session_params params[2];	/* Session parameters */
+	struct session_state state[2];	/* Session state */
+	char has_subsession;
 #endif
 
-  struct session_params s_params;         /* Session parameters */
-  struct session_state  s_state;          /* Session state */
+	struct session_params s_params;	/* Session parameters */
+	struct session_state s_state;	/* Session state */
 
 #ifdef HAVE_PATRICIA
-  patricia_tree_t *ptree;
+	patricia_tree_t *ptree;
 #endif
 
-  /* Radius authentication stuff */
-  /* Parameters are initialised whenever a reply to an access request
-     is received. */
+	/* Radius authentication stuff */
+	/* Parameters are initialised whenever a reply to an access request
+	   is received. */
 #ifdef ENABLE_RADPROXY
-  uint8_t chal[MAX_EAP_LEN];     /* EAP challenge */
-  size_t challen;                /* Length of EAP challenge */
-  uint8_t sendkey[RADIUS_ATTR_VLEN];
-  uint8_t recvkey[RADIUS_ATTR_VLEN];
-  uint8_t lmntkeys[RADIUS_MPPEKEYSSIZE];
-  size_t sendlen;
-  size_t recvlen;
-  size_t lmntlen;
-  uint32_t policy;
-  uint32_t types;
-  uint8_t ms2succ[MS2SUCCSIZE];
-  size_t ms2succlen;
+	uint8_t chal[MAX_EAP_LEN];	/* EAP challenge */
+	size_t challen;		/* Length of EAP challenge */
+	uint8_t sendkey[RADIUS_ATTR_VLEN];
+	uint8_t recvkey[RADIUS_ATTR_VLEN];
+	uint8_t lmntkeys[RADIUS_MPPEKEYSSIZE];
+	size_t sendlen;
+	size_t recvlen;
+	size_t lmntlen;
+	uint32_t policy;
+	uint32_t types;
+	uint8_t ms2succ[MS2SUCCSIZE];
+	size_t ms2succlen;
 #endif
 
-  /* Radius proxy stuff */
-  /* Parameters are initialised whenever a radius proxy request is received */
-  /* Only one outstanding request allowed at a time */
-  int radiuswait;                /* Radius request in progres */
-  struct sockaddr_in radiuspeer; /* Where to send reply */
-  uint8_t radiusid;              /* ID to reply with */
-  uint8_t authenticator[RADIUS_AUTHLEN];
-  int authtype; /* TODO */
+	/* Radius proxy stuff */
+	/* Parameters are initialised whenever a radius proxy request is received */
+	/* Only one outstanding request allowed at a time */
+	int radiuswait;		/* Radius request in progres */
+	struct sockaddr_in radiuspeer;	/* Where to send reply */
+	uint8_t radiusid;	/* ID to reply with */
+	uint8_t authenticator[RADIUS_AUTHLEN];
+	int authtype;		/* TODO */
 
-  /* Parameters for radius accounting */
-  /* These parameters are set when an access accept is sent back to the
-     NAS */
+	/* Parameters for radius accounting */
+	/* These parameters are set when an access accept is sent back to the
+	   NAS */
 
-  uint32_t nasip;              /* Set by access request */
-  uint32_t nasport;            /* Set by access request */
-  uint8_t hismac[PKT_ETH_ALEN];/* His MAC address */
-  struct in_addr ourip;        /* IP address to listen to */
-  struct in_addr hisip;        /* Client IP address */
-  struct in_addr hismask;      /* Client IP address mask */
-  struct in_addr reqip;        /* IP requested by client */
+	uint32_t nasip;		/* Set by access request */
+	uint32_t nasport;	/* Set by access request */
+	uint8_t hismac[PKT_ETH_ALEN];	/* His MAC address */
+	struct in_addr ourip;	/* IP address to listen to */
+	struct in_addr hisip;	/* Client IP address */
+	struct in_addr hismask;	/* Client IP address mask */
+	struct in_addr reqip;	/* IP requested by client */
 #ifdef ENABLE_UAMANYIP
-  struct in_addr natip;
+	struct in_addr natip;
 #endif
-  uint16_t mtu;
+	uint16_t mtu;
 
-  /* Information for each connection */
-  struct in_addr net;
-  struct in_addr mask;
-  struct in_addr dns1;
-  struct in_addr dns2;
+	/* Information for each connection */
+	struct in_addr net;
+	struct in_addr mask;
+	struct in_addr dns1;
+	struct in_addr dns2;
 
 #if defined(ENABLE_LOCATION) && defined(HAVE_AVL)
-  struct list_entity loc_sess;
-  struct loc_search_t *loc_search_node;
+	struct list_entity loc_sess;
+	struct loc_search_t *loc_search_node;
 #endif
 };
 
@@ -166,29 +166,29 @@ struct app_conn_t {
 #define VAL_USHORT   5
 
 typedef enum {
-  ACCT_USER,
+	ACCT_USER,
 #ifdef ENABLE_GARDENACCOUNTING
-  ACCT_GARDEN,
+	ACCT_GARDEN,
 #endif
 } acct_type;
 
 void set_env(char *name, char type, void *value, int len);
 
-extern struct app_conn_t *firstfreeconn; /* First free in linked list */
-extern struct app_conn_t *lastfreeconn;  /* Last free in linked list */
-extern struct app_conn_t *firstusedconn; /* First used in linked list */
-extern struct app_conn_t *lastusedconn;  /* Last used in linked list */
+extern struct app_conn_t *firstfreeconn;	/* First free in linked list */
+extern struct app_conn_t *lastfreeconn;	/* Last free in linked list */
+extern struct app_conn_t *firstusedconn;	/* First used in linked list */
+extern struct app_conn_t *lastusedconn;	/* Last used in linked list */
 
-extern struct radius_t *radius;          /* Radius client instance */
-extern struct dhcp_t *dhcp;              /* DHCP instance */
-extern struct tun_t *tun;                /* TUN/TAP instance */
+extern struct radius_t *radius;	/* Radius client instance */
+extern struct dhcp_t *dhcp;	/* DHCP instance */
+extern struct tun_t *tun;	/* TUN/TAP instance */
 
 #ifdef ENABLE_CLUSTER
 struct chilli_peer {
-  struct in_addr addr;
-  uint8_t mac[6];
-  uint8_t state;
-  time_t last_update;
+	struct in_addr addr;
+	uint8_t mac[6];
+	uint8_t state;
+	time_t last_update;
 };
 #define PEER_STATE_OFFLINE 0
 #define PEER_STATE_ACTIVE  1
@@ -205,27 +205,27 @@ int loadstatus();
 int chilli_connect(struct app_conn_t **appconn, struct dhcp_conn_t *conn);
 
 #ifdef ENABLE_LAYER3
-struct app_conn_t * chilli_connect_layer3(struct in_addr *src, struct dhcp_conn_t *conn);
+struct app_conn_t *chilli_connect_layer3(struct in_addr *src,
+					 struct dhcp_conn_t *conn);
 #endif
 
-int chilli_getconn(struct app_conn_t **conn, uint32_t ip, 
+int chilli_getconn(struct app_conn_t **conn, uint32_t ip,
 		   uint32_t nasip, uint32_t nasport);
 
-int chilli_appconn_run(int (*cb)(struct app_conn_t *, void *), void *d);
+int chilli_appconn_run(int (*cb) (struct app_conn_t *, void *), void *d);
 
-int chilli_req_attrs(struct radius_t *radius, 
+int chilli_req_attrs(struct radius_t *radius,
 		     struct radius_packet_t *pack,
 		     acct_type type,
 		     uint32_t service_type,
 		     uint8_t status_type,
 		     uint32_t port,
-		     uint8_t *hismac,
-		     struct in_addr *hisip,
-		     struct session_state *state);
+		     uint8_t * hismac,
+		     struct in_addr *hisip, struct session_state *state);
 
 int chilli_auth_radius(struct radius_t *radius);
 
-int chilli_signal(int signo, void (*func)(int));
+int chilli_signal(int signo, void (*func) (int));
 void chilli_signals(int *with_term, int *with_hup);
 
 int chilli_binconfig(char *file, size_t flen, pid_t pid);
@@ -234,21 +234,17 @@ int chilli_new_conn(struct app_conn_t **conn);
 
 int chilli_assign_snat(struct app_conn_t *appconn, int force);
 
-void chilli_print(bstring s, int listfmt, 
-		  struct app_conn_t *appconn,
-		  struct dhcp_conn_t *conn);
+void chilli_print(bstring s, int listfmt,
+		  struct app_conn_t *appconn, struct dhcp_conn_t *conn);
 
-int chilli_acct_fromsub(struct app_conn_t *appconn, 
-			struct pkt_ipphdr_t *ipph);
-int chilli_acct_tosub(struct app_conn_t *appconn, 
-		      struct pkt_ipphdr_t *ipph);
+int chilli_acct_fromsub(struct app_conn_t *appconn, struct pkt_ipphdr_t *ipph);
+int chilli_acct_tosub(struct app_conn_t *appconn, struct pkt_ipphdr_t *ipph);
 
 int terminate_appconn(struct app_conn_t *appconn, int terminate_cause);
 
-void config_radius_session(struct session_params *params, 
-			   struct radius_packet_t *pack, 
-			   struct app_conn_t *appconn,
-			   int reconfig);
+void config_radius_session(struct session_params *params,
+			   struct radius_packet_t *pack,
+			   struct app_conn_t *appconn, int reconfig);
 
 void session_param_defaults(struct session_params *params);
 
@@ -283,7 +279,7 @@ void child_killall(int sig);
 
 #ifdef ENABLE_PROXYVSA
 int radius_addvsa(struct radius_packet_t *pack, struct redir_state *state);
-int chilli_learn_location(uint8_t *loc, int loclen, 
+int chilli_learn_location(uint8_t * loc, int loclen,
 			  struct app_conn_t *appconn, char force);
 #endif
 
@@ -295,54 +291,53 @@ int kmod_coova_clear();
 #endif
 
 #ifdef HAVE_OPENSSL
-void NtPasswordHash(u_char *Password, int len, u_char *hash);
-void HashNtPasswordHash(u_char *hash, u_char *hashhash);
-void ChallengeHash(u_char *PeerChallenge, u_char *AuthenticatorChallenge,
-		   u_char *UserName, int UserNameLen, u_char *Challenge);
-void GenerateNTResponse(u_char *AuthenticatorChallenge, 
-			u_char *PeerChallenge,
-			u_char *UserName, int UserNameLen, 
-			u_char *Password, int PasswordLen, 
-			u_char *Response);
-void GenerateAuthenticatorResponse(u_char *Password, int PasswordLen,
-				   u_char *NTResponse, u_char *PeerChallenge,
-				   u_char *AuthenticatorChallenge, u_char *UserName,
-				   int UserNameLen, u_char *AuthenticatorResponse);
+void NtPasswordHash(u_char * Password, int len, u_char * hash);
+void HashNtPasswordHash(u_char * hash, u_char * hashhash);
+void ChallengeHash(u_char * PeerChallenge, u_char * AuthenticatorChallenge,
+		   u_char * UserName, int UserNameLen, u_char * Challenge);
+void GenerateNTResponse(u_char * AuthenticatorChallenge,
+			u_char * PeerChallenge,
+			u_char * UserName, int UserNameLen,
+			u_char * Password, int PasswordLen, u_char * Response);
+void GenerateAuthenticatorResponse(u_char * Password, int PasswordLen,
+				   u_char * NTResponse, u_char * PeerChallenge,
+				   u_char * AuthenticatorChallenge,
+				   u_char * UserName, int UserNameLen,
+				   u_char * AuthenticatorResponse);
 #endif
 
 #ifdef ENABLE_MULTIROUTE
 int chilli_getconn_byroute(struct app_conn_t **conn, int idx);
 #endif
 
-uint8_t* chilli_called_station(struct session_state *state);
+uint8_t *chilli_called_station(struct session_state *state);
 
 int chilli_cmd(struct cmdsock_request *req, bstring s, int sock);
 
 int chilli_handle_signal(void *ctx, int fd);
 void chilli_freeconn();
 
-int runscript(struct app_conn_t *appconn, char* script,
-	      char *loc, char *oloc);
+int runscript(struct app_conn_t *appconn, char *script, char *loc, char *oloc);
 
 /* utils.c */
 int statedir_file(char *dst, int dlen, char *file, char *deffile);
 int bblk_fromfd(bstring s, int fd, int len);
 int bstring_fromfd(bstring s, int fd);
 #ifndef HAVE_GETLINE
-ssize_t getline (char** lineptr, size_t* n, FILE* stream);
+ssize_t getline(char **lineptr, size_t * n, FILE * stream);
 #endif
 
 /* sig.c */
-int ndelay_on (int fd);
-int ndelay_off (int fd);
-int coe (int fd);
+int ndelay_on(int fd);
+int ndelay_off(int fd);
+int coe(int fd);
 
-int set_signal (int signo, void (*func)(int));
+int set_signal(int signo, void (*func) (int));
 
-int selfpipe_init (void);
-int selfpipe_read (void);
-int selfpipe_trap (int signo);
-int selfpipe_ignore (int signo);
+int selfpipe_init(void);
+int selfpipe_read(void);
+int selfpipe_trap(int signo);
+int selfpipe_ignore(int signo);
 void selfpipe_finish();
 
 #ifdef ENABLE_LOCATION
@@ -350,29 +345,24 @@ void location_init();
 #ifdef HAVE_AVL
 
 struct loc_search_t {
-  struct avl_node node;
+	struct avl_node node;
 
-  char value[MAX_LOCATION_LENGTH];
+	char value[MAX_LOCATION_LENGTH];
 
-  uint64_t total_sess_count,
-    closed_sess_count,
-    new_sess_count,
-    roamed_in_sess_count,
-    roamed_out_sess_count;
+	uint64_t total_sess_count,
+	    closed_sess_count,
+	    new_sess_count, roamed_in_sess_count, roamed_out_sess_count;
 
-  time_t last_queried; 
+	time_t last_queried;
 
-  struct list_entity loc_sess_head;
+	struct list_entity loc_sess_head;
 
-  uint64_t closed_bytes_up,
-    closed_bytes_down; 
+	uint64_t closed_bytes_up, closed_bytes_down;
 
 #ifdef ENABLE_GARDENACCOUNTING
-  uint64_t garden_closed_bytes_up,
-    garden_closed_bytes_down; 
+	uint64_t garden_closed_bytes_up, garden_closed_bytes_down;
 
-  uint64_t other_closed_bytes_up,
-    other_closed_bytes_down; 
+	uint64_t other_closed_bytes_up, other_closed_bytes_down;
 #endif
 };
 

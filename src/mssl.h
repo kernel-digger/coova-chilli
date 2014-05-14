@@ -26,7 +26,6 @@
  *
  */
 
-
 #ifndef __MATRIXSSL_HELPER_H__
 #define __MATRIXSSL_HELPER_H__
 
@@ -42,25 +41,26 @@
 #endif
 
 typedef struct __SSL {
-  int fd;
-  ssl_t *ssl;
-  sslKeys_t *keys;
-  sslBuf_t insock, outsock, inbuf;
-  int outBufferCount;
-  int pending;
-  int status;
+	int fd;
+	ssl_t *ssl;
+	sslKeys_t *keys;
+	sslBuf_t insock, outsock, inbuf;
+	int outBufferCount;
+	int pending;
+	int status;
 } SSL;
 
-SSL* SSL_new(sslKeys_t *keys, int flags);
-void SSL_set_fd(SSL *ssl, int fd);
-int SSL_accept(SSL *ssl);
-int SSL_accept2(SSL *ssl);
-int SSL_read(SSL *ssl, char *b, int len);
-int SSL_write(SSL *ssl, char *buf, int len);
-int SSL_peek(SSL *ssl, char *buf, int len);
-int SSL_pending(SSL *ssl);
-void SSL_free(SSL *ssl);
-int SSL_connect(SSL *ssl, int (*certValidator)(sslCertInfo_t *t, void *arg), void *certValidatorArgs);
-int SSL_is_init_finished(SSL *ssl);
+SSL *SSL_new(sslKeys_t * keys, int flags);
+void SSL_set_fd(SSL * ssl, int fd);
+int SSL_accept(SSL * ssl);
+int SSL_accept2(SSL * ssl);
+int SSL_read(SSL * ssl, char *b, int len);
+int SSL_write(SSL * ssl, char *buf, int len);
+int SSL_peek(SSL * ssl, char *buf, int len);
+int SSL_pending(SSL * ssl);
+void SSL_free(SSL * ssl);
+int SSL_connect(SSL * ssl, int (*certValidator) (sslCertInfo_t * t, void *arg),
+		void *certValidatorArgs);
+int SSL_is_init_finished(SSL * ssl);
 
 #endif /* __MATRIXSSL_HELPER_H__ */

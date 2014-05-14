@@ -18,7 +18,6 @@
  * 
  */
 
-
 #ifndef _IPPOOL_H
 #define _IPPOOL_H
 
@@ -41,38 +40,38 @@
 #include "system.h"
 #include "lookup.h"
 
-struct ippoolm_t;                /* Forward declaration */
+struct ippoolm_t;		/* Forward declaration */
 
 struct ippool_t {
-  int dynsize;                   /* Total number of dynamic addresses */
-  int statsize;                  /* Total number of static addresses */
-  int listsize;                  /* Total number of addresses */
-  int allowdyn;                  /* Allow dynamic IP address allocation */
-  int allowstat;                 /* Allow static IP address allocation */
-  struct in_addr stataddr;       /* Static address range network address */
-  struct in_addr statmask;       /* Static address range network mask */
-  struct ippoolm_t *member;      /* Listsize array of members */
-  int hashsize;                  /* Size of hash table */
-  int hashlog;                   /* Log2 size of hash table */
-  int hashmask;                  /* Bitmask for calculating hash */
-  struct ippoolm_t **hash;       /* Hashsize array of pointer to member */
-  struct ippoolm_t *firstdyn;    /* Pointer to first free dynamic member */
-  struct ippoolm_t *lastdyn;     /* Pointer to last free dynamic member */
-  struct ippoolm_t *firststat;   /* Pointer to first free static member */
-  struct ippoolm_t *laststat;    /* Pointer to last free static member */
+	int dynsize;		/* Total number of dynamic addresses */
+	int statsize;		/* Total number of static addresses */
+	int listsize;		/* Total number of addresses */
+	int allowdyn;		/* Allow dynamic IP address allocation */
+	int allowstat;		/* Allow static IP address allocation */
+	struct in_addr stataddr;	/* Static address range network address */
+	struct in_addr statmask;	/* Static address range network mask */
+	struct ippoolm_t *member;	/* Listsize array of members */
+	int hashsize;		/* Size of hash table */
+	int hashlog;		/* Log2 size of hash table */
+	int hashmask;		/* Bitmask for calculating hash */
+	struct ippoolm_t **hash;	/* Hashsize array of pointer to member */
+	struct ippoolm_t *firstdyn;	/* Pointer to first free dynamic member */
+	struct ippoolm_t *lastdyn;	/* Pointer to last free dynamic member */
+	struct ippoolm_t *firststat;	/* Pointer to first free static member */
+	struct ippoolm_t *laststat;	/* Pointer to last free static member */
 };
 
 struct ippoolm_t {
 #ifndef IPPOOL_NOIP6
-  struct in6_addr addr;          /* IP address of this member */
+	struct in6_addr addr;	/* IP address of this member */
 #else
-  struct in_addr addr;           /* IP address of this member */
+	struct in_addr addr;	/* IP address of this member */
 #endif
-  char in_use;                   /* 0=available; 1= used */
-  char is_static;                /* 0= dynamic; 1 = static */
-  struct ippoolm_t *nexthash;    /* Linked list part of hash table */
-  struct ippoolm_t *prev, *next; /* Linked list of free dynamic or static */
-  void *peer;                    /* Pointer to peer protocol handler */
+	char in_use;		/* 0=available; 1= used */
+	char is_static;		/* 0= dynamic; 1 = static */
+	struct ippoolm_t *nexthash;	/* Linked list part of hash table */
+	struct ippoolm_t *prev, *next;	/* Linked list of free dynamic or static */
+	void *peer;		/* Pointer to peer protocol handler */
 };
 
 /* The above structures require approximately 20+4 = 24 bytes for
@@ -83,8 +82,8 @@ struct ippoolm_t {
 extern uint32_t ippool_hash4(struct in_addr *addr);
 
 /* Create new address pool */
-extern int ippool_new(struct ippool_t **this, 
-		      char *dyn, int start, int end, 
+extern int ippool_new(struct ippool_t **this,
+		      char *dyn, int start, int end,
 		      char *stat, int allowdyn, int allowstat);
 
 /* Delete existing address pool */
@@ -92,7 +91,7 @@ extern int ippool_free(struct ippool_t *this);
 
 /* Find an IP address in the pool */
 extern int ippool_getip(struct ippool_t *this, struct ippoolm_t **member,
-		 struct in_addr *addr);
+			struct in_addr *addr);
 
 /* Get an IP address. If addr = 0.0.0.0 get a dynamic IP address. Otherwise
    check to see if the given address is available */
@@ -116,4 +115,4 @@ extern int ippool_getip6(struct ippool_t *this, struct in6_addr *addr);
 extern int ippool_returnip6(struct ippool_t *this, struct in6_addr *addr);
 #endif
 
-#endif	/* !_IPPOOL_H */
+#endif /* !_IPPOOL_H */

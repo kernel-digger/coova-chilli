@@ -19,94 +19,94 @@
 
 #include "chilli.h"
 
-int
-cmdsock_init() {
-  struct sockaddr_un local;
-  int cmdsock;
-  
-  if ((cmdsock = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
+int cmdsock_init()
+{
+	struct sockaddr_un local;
+	int cmdsock;
 
-    log_err(errno, "could not allocate UNIX Socket!");
+	if ((cmdsock = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
 
-  } else {
+		log_err(errno, "could not allocate UNIX Socket!");
 
-    local.sun_family = AF_UNIX;
+	} else {
 
-    strcpy(local.sun_path, _options.cmdsocket);
-    unlink(local.sun_path);
+		local.sun_family = AF_UNIX;
 
-    if (bind(cmdsock, (struct sockaddr *)&local, 
-	     sizeof(struct sockaddr_un)) == -1) {
-      log_err(errno, "could bind UNIX Socket!");
-      close(cmdsock);
-      cmdsock = -1;
-    } else {
-      if (listen(cmdsock, 5) == -1) {
-	log_err(errno, "could listen to UNIX Socket!");
-	close(cmdsock);
-	cmdsock = -1;
-      } else {
-	if (_options.uid) {
-	  if (chown(_options.cmdsocket, _options.uid, _options.gid)) {
-	    log_err(errno, "could not chown() %s",
-		    _options.cmdsocket);
-	  }
+		strcpy(local.sun_path, _options.cmdsocket);
+		unlink(local.sun_path);
+
+		if (bind(cmdsock, (struct sockaddr *)&local,
+			 sizeof(struct sockaddr_un)) == -1) {
+			log_err(errno, "could bind UNIX Socket!");
+			close(cmdsock);
+			cmdsock = -1;
+		} else {
+			if (listen(cmdsock, 5) == -1) {
+				log_err(errno, "could listen to UNIX Socket!");
+				close(cmdsock);
+				cmdsock = -1;
+			} else {
+				if (_options.uid) {
+					if (chown
+					    (_options.cmdsocket, _options.uid,
+					     _options.gid)) {
+						log_err(errno,
+							"could not chown() %s",
+							_options.cmdsocket);
+					}
+				}
+			}
+		}
 	}
-      }
-    }
-  }
 
-  return cmdsock;
+	return cmdsock;
 }
 
+int cmdsock_port_init()
+{
+	struct sockaddr_in local;
+	int cmdsock;
+	int rc;
 
-int
-cmdsock_port_init() {
-  struct sockaddr_in local;
-  int cmdsock;
-  int rc;
-  
-  if ((cmdsock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1) {
+	if ((cmdsock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1) {
 
-    log_err(errno, "could not allocate commands socket!");
+		log_err(errno, "could not allocate commands socket!");
 
-  } else {
+	} else {
 
-    memset(&local, 0, sizeof(local));
-    local.sin_family = AF_INET;
-    local.sin_addr.s_addr = INADDR_ANY;
-    local.sin_port = htons(_options.cmdsocketport);
+		memset(&local, 0, sizeof(local));
+		local.sin_family = AF_INET;
+		local.sin_addr.s_addr = INADDR_ANY;
+		local.sin_port = htons(_options.cmdsocketport);
 
-    rc = 1;
-    setsockopt(cmdsock,
-	       SOL_SOCKET,
-	       SO_REUSEADDR,
-	       (char *)&rc,
-	       sizeof(rc));
+		rc = 1;
+		setsockopt(cmdsock,
+			   SOL_SOCKET, SO_REUSEADDR, (char *)&rc, sizeof(rc));
 
-    if (bind(cmdsock, (struct sockaddr *)&local, 
-	     sizeof(struct sockaddr_in)) == -1) {
-      log_err(errno, "could not bind commands socket!");
-      close(cmdsock);
-      cmdsock = -1;
-    } else {
-      if (listen(cmdsock, 5) == -1) {
-	log_err(errno, "could not listen from commands socket!");
-	close(cmdsock);
-	cmdsock = -1;
-      }
-    }
-  }
+		if (bind(cmdsock, (struct sockaddr *)&local,
+			 sizeof(struct sockaddr_in)) == -1) {
+			log_err(errno, "could not bind commands socket!");
+			close(cmdsock);
+			cmdsock = -1;
+		} else {
+			if (listen(cmdsock, 5) == -1) {
+				log_err(errno,
+					"could not listen from commands socket!");
+				close(cmdsock);
+				cmdsock = -1;
+			}
+		}
+	}
 
-  return cmdsock;
+	return cmdsock;
 }
 
-
-void cmdsock_shutdown(int s) {
-  if (s < 0) {
-    return;
-  }
-  log_dbg("Shutting down cmdsocket");
-  shutdown(s, 2);
-  close(s);
+void cmdsock_shutdown(int s)
+{
+	if (s < 0) {
+		return;
+	}
+	log_dbg("Shutting down cmdsocket");
+	shutdown(s, 2);
+	close(s);
 }

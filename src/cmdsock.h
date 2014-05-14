@@ -20,40 +20,40 @@
 #define CMDSOCK_H
 
 typedef enum {
-  CMDSOCK_DHCP_LIST=0,
-  CMDSOCK_DHCP_RELEASE,
-  CMDSOCK_LIST,
-  CMDSOCK_SHOW,
-  CMDSOCK_AUTHORIZE,
-  CMDSOCK_DHCP_DROP,
-  CMDSOCK_RELOAD,
-  CMDSOCK_PROCS,
-  CMDSOCK_UPDATE,
-  CMDSOCK_LOGIN,
-  CMDSOCK_LOGOUT,
-  CMDSOCK_LIST_IPPOOL,
-  CMDSOCK_LIST_RADQUEUE,
-  CMDSOCK_LIST_GARDEN,
+	CMDSOCK_DHCP_LIST = 0,
+	CMDSOCK_DHCP_RELEASE,
+	CMDSOCK_LIST,
+	CMDSOCK_SHOW,
+	CMDSOCK_AUTHORIZE,
+	CMDSOCK_DHCP_DROP,
+	CMDSOCK_RELOAD,
+	CMDSOCK_PROCS,
+	CMDSOCK_UPDATE,
+	CMDSOCK_LOGIN,
+	CMDSOCK_LOGOUT,
+	CMDSOCK_LIST_IPPOOL,
+	CMDSOCK_LIST_RADQUEUE,
+	CMDSOCK_LIST_GARDEN,
 #ifdef ENABLE_STATFILE
-  CMDSOCK_STATUSFILE,
+	CMDSOCK_STATUSFILE,
 #endif
 #ifdef ENABLE_CLUSTER
-  CMDSOCK_PEERS,
-  CMDSOCK_PEER_SET,
+	CMDSOCK_PEERS,
+	CMDSOCK_PEER_SET,
 #endif
 #ifdef ENABLE_MULTIROUTE
-  CMDSOCK_ROUTE,
-  CMDSOCK_ROUTE_SET,
-  CMDSOCK_ROUTE_GW,
+	CMDSOCK_ROUTE,
+	CMDSOCK_ROUTE_SET,
+	CMDSOCK_ROUTE_GW,
 #endif
-  CMDSOCK_ADD_GARDEN,
-  CMDSOCK_REM_GARDEN,
+	CMDSOCK_ADD_GARDEN,
+	CMDSOCK_REM_GARDEN,
 #ifdef ENABLE_INSPECT
-  CMDSOCK_INSPECT,
+	CMDSOCK_INSPECT,
 #endif
 #if defined(ENABLE_LOCATION) && defined(HAVE_AVL)
- CMDSOCK_LISTLOC,
- CMDSOCK_LISTLOCSUM,
+	CMDSOCK_LISTLOC,
+	CMDSOCK_LISTLOCSUM,
 #endif
 } chilli_cmdtype;
 #define  CMDSOCK_OPT_JSON      (1)
@@ -61,24 +61,24 @@ typedef enum {
 #include "pkt.h"
 #include "session.h"
 
-struct cmdsock_request { 
-  uint16_t type;
-  uint16_t options;
-  unsigned char mac[PKT_ETH_ALEN];
-  struct in_addr ip;
-  union {
-    struct cmdsock_session {
-      char username[256];
-      char password[256];
-      char sessionid[17];
+struct cmdsock_request {
+	uint16_t type;
+	uint16_t options;
+	unsigned char mac[PKT_ETH_ALEN];
+	struct in_addr ip;
+	union {
+		struct cmdsock_session {
+			char username[256];
+			char password[256];
+			char sessionid[17];
 #ifdef ENABLE_LOCATION
-      char location[MAX_LOCATION_LENGTH];
+			char location[MAX_LOCATION_LENGTH];
 #endif
-      struct session_params params;
-    } sess;
-    char data[1024];
-  } d;
-}  __attribute__((packed));
+			struct session_params params;
+		} sess;
+		char data[1024];
+	} d;
+} __attribute__ ((packed));
 
 typedef struct cmdsock_request CMDSOCK_REQUEST;
 

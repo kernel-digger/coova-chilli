@@ -23,10 +23,8 @@
 #include "system.h"
 #include "pkt.h"
 
-int ewtapi(struct redir_t *redir, 
-	   struct redir_socket_t *sock, 
-	   struct redir_conn_t *conn,
-	   struct redir_httpreq_t *httpreq);
-
+int ewtapi(struct redir_t *redir,
+	   struct redir_socket_t *sock,
+	   struct redir_conn_t *conn, struct redir_httpreq_t *httpreq);
 
 #endif

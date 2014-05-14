@@ -50,357 +50,367 @@
  */
 
 static char SHA1_Pad1[40] =
-  {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+    { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+};
 
 static char SHA1_Pad2[40] =
-  {0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2,
-   0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2,
-   0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2,
-   0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2};
+    { 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2,
+	0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2,
+	0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2,
+	0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2
+};
 
 /* unused, for documentation only */
 /* only NTResp is filled in for FreeBSD */
 struct MS_ChapResponse {
-    u_char LANManResp[24];
-    u_char NTResp[24];
-    u_char UseNT;	/* If 1, ignore the LANMan response field */
+	u_char LANManResp[24];
+	u_char NTResp[24];
+	u_char UseNT;		/* If 1, ignore the LANMan response field */
 };
 
-static u_char
-Get7Bits(u_char *input, int startBit)
+static u_char Get7Bits(u_char * input, int startBit)
 {
-    register unsigned int	word;
+	register unsigned int word;
 
-    word  = (unsigned)input[startBit / 8] << 8;
-    word |= (unsigned)input[startBit / 8 + 1];
+	word = (unsigned)input[startBit / 8] << 8;
+	word |= (unsigned)input[startBit / 8 + 1];
 
-    word >>= 15 - (startBit % 8 + 7);
+	word >>= 15 - (startBit % 8 + 7);
 
-    return word & 0xFE;
+	return word & 0xFE;
 }
 
 /* IN  56 bit DES key missing parity bits
    OUT 64 bit DES key with parity bits added */
-static void
-MakeKey(u_char *key, u_char *des_key)
+static void MakeKey(u_char * key, u_char * des_key)
 {
-    des_key[0] = Get7Bits(key,  0);
-    des_key[1] = Get7Bits(key,  7);
-    des_key[2] = Get7Bits(key, 14);
-    des_key[3] = Get7Bits(key, 21);
-    des_key[4] = Get7Bits(key, 28);
-    des_key[5] = Get7Bits(key, 35);
-    des_key[6] = Get7Bits(key, 42);
-    des_key[7] = Get7Bits(key, 49);
+	des_key[0] = Get7Bits(key, 0);
+	des_key[1] = Get7Bits(key, 7);
+	des_key[2] = Get7Bits(key, 14);
+	des_key[3] = Get7Bits(key, 21);
+	des_key[4] = Get7Bits(key, 28);
+	des_key[5] = Get7Bits(key, 35);
+	des_key[6] = Get7Bits(key, 42);
+	des_key[7] = Get7Bits(key, 49);
 
-    des_set_odd_parity((des_cblock *)des_key);
+	des_set_odd_parity((des_cblock *) des_key);
 }
 
-static void /* IN 8 octets IN 7 octest OUT 8 octets */
-DesEncrypt(u_char *clear, u_char *key, u_char *cipher)
+static void /* IN 8 octets IN 7 octest OUT 8 octets */ DesEncrypt(u_char *
+								  clear,
+								  u_char * key,
+								  u_char *
+								  cipher)
 {
-    des_cblock		des_key;
-    des_key_schedule	key_schedule;
+	des_cblock des_key;
+	des_key_schedule key_schedule;
 
-    MakeKey(key, des_key);
-    des_set_key(&des_key, key_schedule);
-    des_ecb_encrypt((des_cblock *)clear, (des_cblock *)cipher, key_schedule, 1);
+	MakeKey(key, des_key);
+	des_set_key(&des_key, key_schedule);
+	des_ecb_encrypt((des_cblock *) clear, (des_cblock *) cipher,
+			key_schedule, 1);
 }
 
 #define LENGTH 20
-static u_char *SHA1_End(SHA_CTX *ctx, u_char *buf)
+static u_char *SHA1_End(SHA_CTX * ctx, u_char * buf)
 {
-    int i;
-    unsigned char digest[LENGTH];
-    static const char hex[]="0123456789abcdef";
+	int i;
+	unsigned char digest[LENGTH];
+	static const char hex[] = "0123456789abcdef";
 
-    if (!buf)
-        buf = malloc(2*LENGTH + 1);
+	if (!buf)
+		buf = malloc(2 * LENGTH + 1);
 
-    if (!buf)
-        return 0;
+	if (!buf)
+		return 0;
 
-    SHA1_Final(digest, ctx);
+	SHA1_Final(digest, ctx);
 
-    for (i = 0; i < LENGTH; i++) {
-        buf[i+i] = hex[digest[i] >> 4];
-        buf[i+i+1] = hex[digest[i] & 0x0f];
-    }
+	for (i = 0; i < LENGTH; i++) {
+		buf[i + i] = hex[digest[i] >> 4];
+		buf[i + i + 1] = hex[digest[i] & 0x0f];
+	}
 
-    buf[i+i] = '\0';
-    return buf;
+	buf[i + i] = '\0';
+	return buf;
 }
 
 static void
-ChallengeResponse(u_char *challenge, u_char *pwHash, u_char *response)
+ChallengeResponse(u_char * challenge, u_char * pwHash, u_char * response)
 {
-  u_char  ZPasswordHash[21];
-  
-  memset(ZPasswordHash, '\0', sizeof ZPasswordHash);
-  memcpy(ZPasswordHash, pwHash, 16);
-  
-  DesEncrypt(challenge, ZPasswordHash +  0, response + 0);
-  DesEncrypt(challenge, ZPasswordHash +  7, response + 8);
-  DesEncrypt(challenge, ZPasswordHash + 14, response + 16);
+	u_char ZPasswordHash[21];
+
+	memset(ZPasswordHash, '\0', sizeof ZPasswordHash);
+	memcpy(ZPasswordHash, pwHash, 16);
+
+	DesEncrypt(challenge, ZPasswordHash + 0, response + 0);
+	DesEncrypt(challenge, ZPasswordHash + 7, response + 8);
+	DesEncrypt(challenge, ZPasswordHash + 14, response + 16);
 }
 
-u_char *to_unicode(u_char *non_uni) {
-  u_char *retUni;
-  int i;
+u_char *to_unicode(u_char * non_uni)
+{
+	u_char *retUni;
+	int i;
 
-  retUni = (u_char *)calloc(1, (strlen((char *)non_uni)+1)*2);
-  
-  if (!retUni) return NULL;
-  
-  for (i = 0; i < strlen((char *)non_uni); i++) {
-    retUni[(2*i)] = non_uni[i];
-  }
+	retUni = (u_char *) calloc(1, (strlen((char *)non_uni) + 1) * 2);
 
-  return retUni;
+	if (!retUni)
+		return NULL;
+
+	for (i = 0; i < strlen((char *)non_uni); i++) {
+		retUni[(2 * i)] = non_uni[i];
+	}
+
+	return retUni;
 }
 
-void
-NtPasswordHash(u_char *Password, int len, u_char *hash)
+void NtPasswordHash(u_char * Password, int len, u_char * hash)
 {
-  if (!Password) return;
-  else {
-    MD4_CTX MD4context;
+	if (!Password)
+		return;
+	else {
+		MD4_CTX MD4context;
 
-    u_char *uniPassword = to_unicode(Password);
+		u_char *uniPassword = to_unicode(Password);
 
-    len *= 2;
-    
-    MD4_Init(&MD4context);
-    MD4_Update(&MD4context, uniPassword, len);
-    MD4_Final(hash, &MD4context);
-    
-    free(uniPassword);
-  }
+		len *= 2;
+
+		MD4_Init(&MD4context);
+		MD4_Update(&MD4context, uniPassword, len);
+		MD4_Final(hash, &MD4context);
+
+		free(uniPassword);
+	}
 }
 
-void
-HashNtPasswordHash(u_char *hash, u_char *hashhash)
+void HashNtPasswordHash(u_char * hash, u_char * hashhash)
 {
-  MD4_CTX MD4context;
+	MD4_CTX MD4context;
 
-  MD4_Init(&MD4context);
-  MD4_Update(&MD4context, hash, 16);
-  MD4_Final(hashhash, &MD4context);
-}
-
-void
-ChallengeHash(u_char *PeerChallenge, u_char *AuthenticatorChallenge,
-              u_char *UserName, int UserNameLen, u_char *Challenge)
-{
-  SHA_CTX Context;
-  u_char Digest[SHA_DIGEST_LENGTH];
-  u_char *Name;
-
-  Name = (u_char *)strrchr((char *)UserName, '\\');
-  if (NULL == Name)
-    Name = UserName;
-  else
-    Name++;
-
-  SHA1_Init(&Context);
-
-  SHA1_Update(&Context, PeerChallenge, 16);
-  SHA1_Update(&Context, AuthenticatorChallenge, 16);
-  SHA1_Update(&Context, Name, strlen((char *)Name));
-
-  SHA1_Final(Digest, &Context);
-  memcpy(Challenge, Digest, 8);
+	MD4_Init(&MD4context);
+	MD4_Update(&MD4context, hash, 16);
+	MD4_Final(hashhash, &MD4context);
 }
 
 void
-GenerateNTResponse(u_char *AuthenticatorChallenge, 
-		   u_char *PeerChallenge,
-                   u_char *UserName, int UserNameLen, 
-		   u_char *Password, int PasswordLen, 
-		   u_char *Response)
+ChallengeHash(u_char * PeerChallenge, u_char * AuthenticatorChallenge,
+	      u_char * UserName, int UserNameLen, u_char * Challenge)
 {
-  u_char Challenge[8];
-  u_char PasswordHash[16];
+	SHA_CTX Context;
+	u_char Digest[SHA_DIGEST_LENGTH];
+	u_char *Name;
 
-  ChallengeHash(PeerChallenge, AuthenticatorChallenge, UserName, UserNameLen, Challenge);
-  NtPasswordHash(Password, PasswordLen, PasswordHash);
-  ChallengeResponse(Challenge, PasswordHash, Response);
+	Name = (u_char *) strrchr((char *)UserName, '\\');
+	if (NULL == Name)
+		Name = UserName;
+	else
+		Name++;
+
+	SHA1_Init(&Context);
+
+	SHA1_Update(&Context, PeerChallenge, 16);
+	SHA1_Update(&Context, AuthenticatorChallenge, 16);
+	SHA1_Update(&Context, Name, strlen((char *)Name));
+
+	SHA1_Final(Digest, &Context);
+	memcpy(Challenge, Digest, 8);
 }
 
 void
-GenerateAuthenticatorResponse(u_char *Password, int PasswordLen,
-                              u_char *NTResponse, u_char *PeerChallenge,
-                              u_char *AuthenticatorChallenge, u_char *UserName,
-                              int UserNameLen, u_char *AuthenticatorResponse)
+GenerateNTResponse(u_char * AuthenticatorChallenge,
+		   u_char * PeerChallenge,
+		   u_char * UserName, int UserNameLen,
+		   u_char * Password, int PasswordLen, u_char * Response)
 {
-  SHA_CTX Context;
-  u_char PasswordHash[16];
-  u_char PasswordHashHash[16];
-  u_char Challenge[8];
-  u_char Digest[SHA_DIGEST_LENGTH];
-  int i;
+	u_char Challenge[8];
+	u_char PasswordHash[16];
 
-      /*
-       * "Magic" constants used in response generation
-       */
-  u_char Magic1[39] =
-         {0x4D, 0x61, 0x67, 0x69, 0x63, 0x20, 0x73, 0x65, 0x72, 0x76,
-          0x65, 0x72, 0x20, 0x74, 0x6F, 0x20, 0x63, 0x6C, 0x69, 0x65,
-          0x6E, 0x74, 0x20, 0x73, 0x69, 0x67, 0x6E, 0x69, 0x6E, 0x67,
-          0x20, 0x63, 0x6F, 0x6E, 0x73, 0x74, 0x61, 0x6E, 0x74};
-
-
-  u_char Magic2[41] =
-         {0x50, 0x61, 0x64, 0x20, 0x74, 0x6F, 0x20, 0x6D, 0x61, 0x6B,
-          0x65, 0x20, 0x69, 0x74, 0x20, 0x64, 0x6F, 0x20, 0x6D, 0x6F,
-          0x72, 0x65, 0x20, 0x74, 0x68, 0x61, 0x6E, 0x20, 0x6F, 0x6E,
-          0x65, 0x20, 0x69, 0x74, 0x65, 0x72, 0x61, 0x74, 0x69, 0x6F,
-          0x6E};
-      /*
-       * Hash the password with MD4
-       */
-  NtPasswordHash(Password, PasswordLen, PasswordHash);
-      /*
-       * Now hash the hash
-       */
-  HashNtPasswordHash(PasswordHash, PasswordHashHash);
-
-  SHA1_Init(&Context);
-  SHA1_Update(&Context, PasswordHashHash, 16);
-  SHA1_Update(&Context, NTResponse, 24);
-  SHA1_Update(&Context, Magic1, 39);
-  SHA1_Final(Digest, &Context);
-
-  ChallengeHash(PeerChallenge, AuthenticatorChallenge, UserName, UserNameLen, Challenge);
-
-  SHA1_Init(&Context);
-  SHA1_Update(&Context, Digest, 20);
-  SHA1_Update(&Context, Challenge, 8);
-  SHA1_Update(&Context, Magic2, 41);
-
-      /*
-       * Encode the value of 'Digest' as "S=" followed by
-       * 40 ASCII hexadecimal digits and return it in
-       * AuthenticatorResponse.
-       * For example,
-       *   "S=0123456789ABCDEF0123456789ABCDEF01234567"
-       */
-  AuthenticatorResponse[0] = 'S';
-  AuthenticatorResponse[1] = '=';
-  SHA1_End(&Context, AuthenticatorResponse + 2);
-
-  for (i=2; i<42; i++)
-    AuthenticatorResponse[i] = toupper(AuthenticatorResponse[i]);
+	ChallengeHash(PeerChallenge, AuthenticatorChallenge, UserName,
+		      UserNameLen, Challenge);
+	NtPasswordHash(Password, PasswordLen, PasswordHash);
+	ChallengeResponse(Challenge, PasswordHash, Response);
 }
 
 void
-GetMasterKey(char *PasswordHashHash, char *NTResponse, char *MasterKey)
+GenerateAuthenticatorResponse(u_char * Password, int PasswordLen,
+			      u_char * NTResponse, u_char * PeerChallenge,
+			      u_char * AuthenticatorChallenge,
+			      u_char * UserName, int UserNameLen,
+			      u_char * AuthenticatorResponse)
 {
-  SHA_CTX Context;
-  u_char Digest[SHA_DIGEST_LENGTH];
-  static u_char Magic1[27] =
-      {0x54, 0x68, 0x69, 0x73, 0x20, 0x69, 0x73, 0x20, 0x74,
-       0x68, 0x65, 0x20, 0x4d, 0x50, 0x50, 0x45, 0x20, 0x4d,
-       0x61, 0x73, 0x74, 0x65, 0x72, 0x20, 0x4b, 0x65, 0x79};
+	SHA_CTX Context;
+	u_char PasswordHash[16];
+	u_char PasswordHashHash[16];
+	u_char Challenge[8];
+	u_char Digest[SHA_DIGEST_LENGTH];
+	int i;
 
-  SHA1_Init(&Context);
-  SHA1_Update(&Context, PasswordHashHash, 16);
-  SHA1_Update(&Context, NTResponse, 24);
-  SHA1_Update(&Context, Magic1, 27);
-  SHA1_Final(Digest, &Context);
-  memcpy(MasterKey, Digest, 16);
+	/*
+	 * "Magic" constants used in response generation
+	 */
+	u_char Magic1[39] =
+	    { 0x4D, 0x61, 0x67, 0x69, 0x63, 0x20, 0x73, 0x65, 0x72, 0x76,
+		0x65, 0x72, 0x20, 0x74, 0x6F, 0x20, 0x63, 0x6C, 0x69, 0x65,
+		0x6E, 0x74, 0x20, 0x73, 0x69, 0x67, 0x6E, 0x69, 0x6E, 0x67,
+		0x20, 0x63, 0x6F, 0x6E, 0x73, 0x74, 0x61, 0x6E, 0x74
+	};
+
+	u_char Magic2[41] =
+	    { 0x50, 0x61, 0x64, 0x20, 0x74, 0x6F, 0x20, 0x6D, 0x61, 0x6B,
+		0x65, 0x20, 0x69, 0x74, 0x20, 0x64, 0x6F, 0x20, 0x6D, 0x6F,
+		0x72, 0x65, 0x20, 0x74, 0x68, 0x61, 0x6E, 0x20, 0x6F, 0x6E,
+		0x65, 0x20, 0x69, 0x74, 0x65, 0x72, 0x61, 0x74, 0x69, 0x6F,
+		0x6E
+	};
+	/*
+	 * Hash the password with MD4
+	 */
+	NtPasswordHash(Password, PasswordLen, PasswordHash);
+	/*
+	 * Now hash the hash
+	 */
+	HashNtPasswordHash(PasswordHash, PasswordHashHash);
+
+	SHA1_Init(&Context);
+	SHA1_Update(&Context, PasswordHashHash, 16);
+	SHA1_Update(&Context, NTResponse, 24);
+	SHA1_Update(&Context, Magic1, 39);
+	SHA1_Final(Digest, &Context);
+
+	ChallengeHash(PeerChallenge, AuthenticatorChallenge, UserName,
+		      UserNameLen, Challenge);
+
+	SHA1_Init(&Context);
+	SHA1_Update(&Context, Digest, 20);
+	SHA1_Update(&Context, Challenge, 8);
+	SHA1_Update(&Context, Magic2, 41);
+
+	/*
+	 * Encode the value of 'Digest' as "S=" followed by
+	 * 40 ASCII hexadecimal digits and return it in
+	 * AuthenticatorResponse.
+	 * For example,
+	 *   "S=0123456789ABCDEF0123456789ABCDEF01234567"
+	 */
+	AuthenticatorResponse[0] = 'S';
+	AuthenticatorResponse[1] = '=';
+	SHA1_End(&Context, AuthenticatorResponse + 2);
+
+	for (i = 2; i < 42; i++)
+		AuthenticatorResponse[i] = toupper(AuthenticatorResponse[i]);
+}
+
+void GetMasterKey(char *PasswordHashHash, char *NTResponse, char *MasterKey)
+{
+	SHA_CTX Context;
+	u_char Digest[SHA_DIGEST_LENGTH];
+	static u_char Magic1[27] =
+	    { 0x54, 0x68, 0x69, 0x73, 0x20, 0x69, 0x73, 0x20, 0x74,
+		0x68, 0x65, 0x20, 0x4d, 0x50, 0x50, 0x45, 0x20, 0x4d,
+		0x61, 0x73, 0x74, 0x65, 0x72, 0x20, 0x4b, 0x65, 0x79
+	};
+
+	SHA1_Init(&Context);
+	SHA1_Update(&Context, PasswordHashHash, 16);
+	SHA1_Update(&Context, NTResponse, 24);
+	SHA1_Update(&Context, Magic1, 27);
+	SHA1_Final(Digest, &Context);
+	memcpy(MasterKey, Digest, 16);
 }
 
 void
 GetAsymetricStartKey(char *MasterKey, char *SessionKey, int SessionKeyLength,
-                     int IsSend, int IsServer)
+		     int IsSend, int IsServer)
 {
-  u_char Digest[SHA_DIGEST_LENGTH];
-  SHA_CTX Context;
-  u_char *s;
+	u_char Digest[SHA_DIGEST_LENGTH];
+	SHA_CTX Context;
+	u_char *s;
 
-  static u_char Magic2[84] =
-      {0x4f, 0x6e, 0x20, 0x74, 0x68, 0x65, 0x20, 0x63, 0x6c, 0x69,
-       0x65, 0x6e, 0x74, 0x20, 0x73, 0x69, 0x64, 0x65, 0x2c, 0x20,
-       0x74, 0x68, 0x69, 0x73, 0x20, 0x69, 0x73, 0x20, 0x74, 0x68,
-       0x65, 0x20, 0x73, 0x65, 0x6e, 0x64, 0x20, 0x6b, 0x65, 0x79,
-       0x3b, 0x20, 0x6f, 0x6e, 0x20, 0x74, 0x68, 0x65, 0x20, 0x73,
-       0x65, 0x72, 0x76, 0x65, 0x72, 0x20, 0x73, 0x69, 0x64, 0x65,
-       0x2c, 0x20, 0x69, 0x74, 0x20, 0x69, 0x73, 0x20, 0x74, 0x68,
-       0x65, 0x20, 0x72, 0x65, 0x63, 0x65, 0x69, 0x76, 0x65, 0x20,
-       0x6b, 0x65, 0x79, 0x2e};
+	static u_char Magic2[84] =
+	    { 0x4f, 0x6e, 0x20, 0x74, 0x68, 0x65, 0x20, 0x63, 0x6c, 0x69,
+		0x65, 0x6e, 0x74, 0x20, 0x73, 0x69, 0x64, 0x65, 0x2c, 0x20,
+		0x74, 0x68, 0x69, 0x73, 0x20, 0x69, 0x73, 0x20, 0x74, 0x68,
+		0x65, 0x20, 0x73, 0x65, 0x6e, 0x64, 0x20, 0x6b, 0x65, 0x79,
+		0x3b, 0x20, 0x6f, 0x6e, 0x20, 0x74, 0x68, 0x65, 0x20, 0x73,
+		0x65, 0x72, 0x76, 0x65, 0x72, 0x20, 0x73, 0x69, 0x64, 0x65,
+		0x2c, 0x20, 0x69, 0x74, 0x20, 0x69, 0x73, 0x20, 0x74, 0x68,
+		0x65, 0x20, 0x72, 0x65, 0x63, 0x65, 0x69, 0x76, 0x65, 0x20,
+		0x6b, 0x65, 0x79, 0x2e
+	};
 
-  static u_char Magic3[84] =
-      {0x4f, 0x6e, 0x20, 0x74, 0x68, 0x65, 0x20, 0x63, 0x6c, 0x69,
-       0x65, 0x6e, 0x74, 0x20, 0x73, 0x69, 0x64, 0x65, 0x2c, 0x20,
-       0x74, 0x68, 0x69, 0x73, 0x20, 0x69, 0x73, 0x20, 0x74, 0x68,
-       0x65, 0x20, 0x72, 0x65, 0x63, 0x65, 0x69, 0x76, 0x65, 0x20,
-       0x6b, 0x65, 0x79, 0x3b, 0x20, 0x6f, 0x6e, 0x20, 0x74, 0x68,
-       0x65, 0x20, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x20, 0x73,
-       0x69, 0x64, 0x65, 0x2c, 0x20, 0x69, 0x74, 0x20, 0x69, 0x73,
-       0x20, 0x74, 0x68, 0x65, 0x20, 0x73, 0x65, 0x6e, 0x64, 0x20,
-       0x6b, 0x65, 0x79, 0x2e};
+	static u_char Magic3[84] =
+	    { 0x4f, 0x6e, 0x20, 0x74, 0x68, 0x65, 0x20, 0x63, 0x6c, 0x69,
+		0x65, 0x6e, 0x74, 0x20, 0x73, 0x69, 0x64, 0x65, 0x2c, 0x20,
+		0x74, 0x68, 0x69, 0x73, 0x20, 0x69, 0x73, 0x20, 0x74, 0x68,
+		0x65, 0x20, 0x72, 0x65, 0x63, 0x65, 0x69, 0x76, 0x65, 0x20,
+		0x6b, 0x65, 0x79, 0x3b, 0x20, 0x6f, 0x6e, 0x20, 0x74, 0x68,
+		0x65, 0x20, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x20, 0x73,
+		0x69, 0x64, 0x65, 0x2c, 0x20, 0x69, 0x74, 0x20, 0x69, 0x73,
+		0x20, 0x74, 0x68, 0x65, 0x20, 0x73, 0x65, 0x6e, 0x64, 0x20,
+		0x6b, 0x65, 0x79, 0x2e
+	};
 
-  if (IsSend) {
-     if (IsServer) {
-        s = Magic3;
-     } else {
-        s = Magic2;
-     }
-  } else {
-     if (IsServer) {
-        s = Magic2;
-     } else {
-        s = Magic3;
-     }
-  }
+	if (IsSend) {
+		if (IsServer) {
+			s = Magic3;
+		} else {
+			s = Magic2;
+		}
+	} else {
+		if (IsServer) {
+			s = Magic2;
+		} else {
+			s = Magic3;
+		}
+	}
 
-  SHA1_Init(&Context);
-  SHA1_Update(&Context, MasterKey, 16);
-  SHA1_Update(&Context, SHA1_Pad1, 40);
-  SHA1_Update(&Context, s, 84);
-  SHA1_Update(&Context, SHA1_Pad2, 40);
-  SHA1_Final(Digest, &Context);
+	SHA1_Init(&Context);
+	SHA1_Update(&Context, MasterKey, 16);
+	SHA1_Update(&Context, SHA1_Pad1, 40);
+	SHA1_Update(&Context, s, 84);
+	SHA1_Update(&Context, SHA1_Pad2, 40);
+	SHA1_Final(Digest, &Context);
 
-  memcpy(SessionKey, Digest, SessionKeyLength);
+	memcpy(SessionKey, Digest, SessionKeyLength);
 }
 
 void
 GetNewKeyFromSHA(char *StartKey, char *SessionKey, long SessionKeyLength,
-                 char *InterimKey)
+		 char *InterimKey)
 {
-  SHA_CTX Context;
-  u_char Digest[SHA_DIGEST_LENGTH];
+	SHA_CTX Context;
+	u_char Digest[SHA_DIGEST_LENGTH];
 
-  SHA1_Init(&Context);
-  SHA1_Update(&Context, StartKey, SessionKeyLength);
-  SHA1_Update(&Context, SHA1_Pad1, 40);
-  SHA1_Update(&Context, SessionKey, SessionKeyLength);
-  SHA1_Update(&Context, SHA1_Pad2, 40);
-  SHA1_Final(Digest, &Context);
+	SHA1_Init(&Context);
+	SHA1_Update(&Context, StartKey, SessionKeyLength);
+	SHA1_Update(&Context, SHA1_Pad1, 40);
+	SHA1_Update(&Context, SessionKey, SessionKeyLength);
+	SHA1_Update(&Context, SHA1_Pad2, 40);
+	SHA1_Final(Digest, &Context);
 
-  memcpy(InterimKey, Digest, SessionKeyLength);
+	memcpy(InterimKey, Digest, SessionKeyLength);
 }
 
 #if 0
 static void
 Get_Key(char *InitialSessionKey, char *CurrentSessionKey,
-        int LengthOfDesiredKey)
+	int LengthOfDesiredKey)
 {
-  SHA_CTX Context;
-  u_char Digest[SHA_DIGEST_LENGTH];
+	SHA_CTX Context;
+	u_char Digest[SHA_DIGEST_LENGTH];
 
-  SHA1_Init(&Context);
-  SHA1_Update(&Context, InitialSessionKey, LengthOfDesiredKey);
-  SHA1_Update(&Context, SHA1_Pad1, 40);
-  SHA1_Update(&Context, CurrentSessionKey, LengthOfDesiredKey);
-  SHA1_Update(&Context, SHA1_Pad2, 40);
-  SHA1_Final(Digest, &Context);
+	SHA1_Init(&Context);
+	SHA1_Update(&Context, InitialSessionKey, LengthOfDesiredKey);
+	SHA1_Update(&Context, SHA1_Pad1, 40);
+	SHA1_Update(&Context, CurrentSessionKey, LengthOfDesiredKey);
+	SHA1_Update(&Context, SHA1_Pad2, 40);
+	SHA1_Final(Digest, &Context);
 
-  memcpy(CurrentSessionKey, Digest, LengthOfDesiredKey);
+	memcpy(CurrentSessionKey, Digest, LengthOfDesiredKey);
 }
 #endif
 
@@ -408,36 +418,34 @@ Get_Key(char *InitialSessionKey, char *CurrentSessionKey,
    challenge    8-bytes peer CHAP challenge
    since passwordHash is in a 24-byte buffer, response is written in there */
 
-void
-mschap_NT(u_char *passwordHash, u_char *challenge)
+void mschap_NT(u_char * passwordHash, u_char * challenge)
 {
-    u_char response[24];
+	u_char response[24];
 
-    ChallengeResponse(challenge, passwordHash, response);
-    memcpy(passwordHash, response, 24);
-    passwordHash[24] = 1;		/* NT-style response */
+	ChallengeResponse(challenge, passwordHash, response);
+	memcpy(passwordHash, response, 24);
+	passwordHash[24] = 1;	/* NT-style response */
 }
 
-void
-mschap_LANMan(u_char *digest, u_char *challenge, char *secret)
+void mschap_LANMan(u_char * digest, u_char * challenge, char *secret)
 {
-  static u_char salt[] = "KGS!@#$%";	/* RASAPI32.dll */
+	static u_char salt[] = "KGS!@#$%";	/* RASAPI32.dll */
 
-  u_char SECRET[14], *ptr, *end;
-  u_char hash[16];
+	u_char SECRET[14], *ptr, *end;
+	u_char hash[16];
 
-  end = SECRET + sizeof SECRET;
+	end = SECRET + sizeof SECRET;
 
-  for (ptr = SECRET; *secret && ptr < end; ptr++, secret++)
-    *ptr = toupper(*secret);
+	for (ptr = SECRET; *secret && ptr < end; ptr++, secret++)
+		*ptr = toupper(*secret);
 
-  if (ptr < end)
-    memset(ptr, '\0', end - ptr);
+	if (ptr < end)
+		memset(ptr, '\0', end - ptr);
 
-  DesEncrypt(salt, SECRET, hash);
-  DesEncrypt(salt, SECRET + 7, hash + 8);
+	DesEncrypt(salt, SECRET, hash);
+	DesEncrypt(salt, SECRET + 7, hash + 8);
 
-  ChallengeResponse(challenge, hash, digest);
+	ChallengeResponse(challenge, hash, digest);
 }
 
 #endif
