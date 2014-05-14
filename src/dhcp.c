@@ -34,6 +34,7 @@ extern struct ippool_t *ippool;
 
 struct dhcp_ctx {
 	struct dhcp_t *parent;
+	/* 结构dhcp_t中rawif[]的数组下标 */
 	int idx;
 };
 
@@ -451,6 +452,7 @@ int dhcp_net_send(struct _net_interface *netif, unsigned char *hismac,
 	return -1;
 }
 
+/* 使用HS_LANIF接口发送报文 */
 int dhcp_send(struct dhcp_t *this, int idx,
 	      unsigned char *hismac, uint8_t * packet, size_t length)
 {
@@ -524,6 +526,7 @@ int dhcp_hashadd(struct dhcp_t *this, struct dhcp_conn_t *conn)
 	struct dhcp_conn_t *p_prev = NULL;
 
 	/* Insert into hash table */
+	/* 计算哈希值 */
 	hash = dhcp_hash(conn->hismac) & this->hashmask;
 	for (p = this->hash[hash]; p; p = p->nexthash)
 		p_prev = p;
@@ -648,6 +651,10 @@ void dhcp_checktag(struct dhcp_conn_t *conn, uint8_t * pack)
  * Uses the hash tables to find a connection based on the mac address.
  * Returns -1 if not found.
  **/
+/*
+根据STA的MAC查找
+@return: 0 - 找到; -1 - 未找到
+*/
 int dhcp_hashget(struct dhcp_t *this, struct dhcp_conn_t **conn,
 		 uint8_t * hwaddr)
 {
@@ -656,8 +663,10 @@ int dhcp_hashget(struct dhcp_t *this, struct dhcp_conn_t **conn,
 
 	/* Find in hash table */
 	hash = dhcp_hash(hwaddr) & this->hashmask;
+	/* 遍历某一个桶下的链表 */
 	for (p = this->hash[hash]; p; p = p->nexthash) {
 		if ((!memcmp(p->hismac, hwaddr, PKT_ETH_ALEN)) && (p->inuse)) {
+			/* 找到MAC一致的 */
 			*conn = p;
 			return 0;
 		}
@@ -671,6 +680,7 @@ int dhcp_hashget(struct dhcp_t *this, struct dhcp_conn_t **conn,
  * Allocates/link a new connection from the pool. 
  * Returns -1 if unsuccessful.
  **/
+/* 分配一个struct dhcp_conn_t节点并加入链表,或找一个空闲节点 */
 int dhcp_lnkconn(struct dhcp_t *this, struct dhcp_conn_t **conn)
 {
 
@@ -719,13 +729,16 @@ int dhcp_lnkconn(struct dhcp_t *this, struct dhcp_conn_t **conn)
 	return 0;		/* Success */
 }
 
+/*
+@mac: STA MAC
+*/
 int dhcp_getconn(struct dhcp_t *this,
 		 struct dhcp_conn_t **conn,
 		 uint8_t * mac, uint8_t * pkt, char do_alloc)
 {
 
 	if (dhcp_hashget(this, conn, mac)) {
-
+	/* 未找到 */
 		if (!do_alloc)
 			return -1;
 
@@ -788,6 +801,7 @@ int dhcp_newconn(struct dhcp_t *this,
 #endif
 		/* Inform application that connection was created */
 	if (this->cb_connect)
+		/* cb_dhcp_connect */
 		this->cb_connect(*conn);
 
 	return 0;		/* Success */
@@ -814,6 +828,7 @@ int dhcp_freeconn(struct dhcp_conn_t *conn, int term_cause)
 
 	/* Tell application that we disconnected */
 	if (this->cb_disconnect)
+		/* cb_dhcp_disconnect */
 		this->cb_disconnect(conn, term_cause);
 
 	if (conn->is_reserved)
@@ -880,6 +895,7 @@ int dhcp_checkconn(struct dhcp_t *this)
 		struct dhcp_conn_t *check_conn = conn;
 		conn = conn->next;
 		if (!check_conn->is_reserved &&
+			/* 超过DHCP续约时间 */
 		    mainclock_diff(check_conn->lasttime) >
 		    (int)this->lease + _options.leaseplus) {
 			log_dbg("DHCP timeout: Removing connection");
@@ -1768,6 +1784,7 @@ int dhcp_dns(struct dhcp_conn_t *conn, uint8_t * pack,
 		size_t olen = dlen;
 
 		uint16_t flags = ntohs(dnsp->flags);
+		/* 4个个数字段 questions answers authority additional */
 		uint16_t qdcount = ntohs(dnsp->qdcount);
 		uint16_t ancount = ntohs(dnsp->ancount);
 		uint16_t nscount = ntohs(dnsp->nscount);
@@ -2270,6 +2287,10 @@ int dhcp_dns(struct dhcp_conn_t *conn, uint8_t * pack,
 	return 1;
 }
 
+/*
+修改目的IP和Port
+@return: 0 - 正确
+*/
 static
 int dhcp_uam_nat(struct dhcp_conn_t *conn,
 		 struct pkt_ethhdr_t *ethh,
@@ -2315,6 +2336,7 @@ int dhcp_uam_nat(struct dhcp_conn_t *conn,
 	}
 #endif
 
+	/* 修改目的IP和Port */
 	iph->daddr = addr->s_addr;
 	tcph->dst = htons(port);
 
@@ -2341,6 +2363,7 @@ int dhcp_uam_unnat(struct dhcp_conn_t *conn,
 			}
 #endif
 
+			/* 把源IP和Port修改回去 */
 			iph->saddr = conn->dnat[n].dst_ip;
 			tcph->src = conn->dnat[n].dst_port;
 
@@ -2376,6 +2399,7 @@ int dhcp_dnsDNAT(struct dhcp_conn_t *conn,
 
 	/* Was it a DNS request? */
 	if ((this->anydns ||
+		/* 目的IP是配置的DNS服务器 */
 	     iph->daddr == conn->dns1.s_addr ||
 	     iph->daddr == conn->dns2.s_addr) &&
 	    iph->protocol == PKT_IP_PROTO_UDP && udph->dst == htons(DHCP_DNS)) {
@@ -2442,6 +2466,9 @@ int dhcp_dnsunDNAT(struct dhcp_conn_t *conn,
 	return 0;		/* Not DNS */
 }
 
+/*
+@return: 1 - 找到; 0 - 未找到
+*/
 int dhcp_garden_check(struct dhcp_t *this,
 		      struct dhcp_conn_t *conn,
 		      struct app_conn_t *appconn,
@@ -2636,6 +2663,9 @@ int dhcp_garden_check(struct dhcp_t *this,
  * dhcp_doDNAT()
  * Change destination address to authentication server.
  **/
+/*
+@return: 0 - 正确; -1 - 出错
+*/
 int dhcp_doDNAT(struct dhcp_conn_t *conn, uint8_t * pack,
 		size_t len, char do_reset, char *do_checksum)
 {
@@ -2668,9 +2698,11 @@ int dhcp_doDNAT(struct dhcp_conn_t *conn, uint8_t * pack,
 		return 0;	/* Destination was local redir server */
 	}
 
+	/* 白名单 */
 	if (dhcp_garden_check(this, conn, 0, (struct pkt_ipphdr_t *)iph, 1))
 		return 0;
 
+	/* HTTP */
 	if (iph->protocol == PKT_IP_PROTO_TCP) {
 		if (tcph->dst == htons(DHCP_HTTP)
 #ifdef HAVE_SSL
@@ -2683,6 +2715,7 @@ int dhcp_doDNAT(struct dhcp_conn_t *conn, uint8_t * pack,
 			*do_checksum = 1;
 
 			OTHER_RECEIVED(conn, iph);
+			/* 将目的IP和Port改为UAM */
 			return dhcp_uam_nat(conn, ethh, iph, tcph,
 					    &this->uamlisten, this->uamport);
 		}
@@ -2695,7 +2728,7 @@ int dhcp_doDNAT(struct dhcp_conn_t *conn, uint8_t * pack,
 			log_dbg("Resetting connection on port %d->%d",
 				ntohs(tcph->src), ntohs(tcph->dst));
 #endif
-
+			/* 其他的TCP连接则reset */
 			dhcp_sendRESET(conn, pack, 1);
 		}
 #endif
@@ -2704,6 +2737,10 @@ int dhcp_doDNAT(struct dhcp_conn_t *conn, uint8_t * pack,
 	return -1;		/* Something else */
 }
 
+/*
+@is_return: 0 - 客户端发出; 1 - 返回给客户端
+@do_checksum: 是否需要重新计算校验和. 1 - 需要
+*/
 static
 int dhcp_postauthDNAT(struct dhcp_conn_t *conn, uint8_t * pack,
 		      size_t len, char is_return, char *do_checksum)
@@ -2729,6 +2766,7 @@ int dhcp_postauthDNAT(struct dhcp_conn_t *conn, uint8_t * pack,
 		}
 	}
 
+	/* 代理服务器 */
 	if (_options.postauth_proxyport > 0) {
 		if (is_return) {
 			if ((iph->protocol == PKT_IP_PROTO_TCP) &&
@@ -3412,6 +3450,7 @@ static int dhcp_relay(struct dhcp_t *this, uint8_t * pack, size_t len)
 int dhcp_getreq(struct dhcp_ctx *ctx, uint8_t * pack, size_t len)
 {
 	struct dhcp_t *this = ctx->parent;
+	/* STA MAC */
 	uint8_t mac[PKT_ETH_ALEN];
 	struct dhcp_tag_t *message_type = 0;
 	struct dhcp_tag_t *requested_ip = 0;
@@ -3435,6 +3474,7 @@ int dhcp_getreq(struct dhcp_ctx *ctx, uint8_t * pack, size_t len)
 	if (message_type->l != 1)
 		return -1;	/* Wrong length of message type */
 
+	/* DHCP报文中chaddr字段带了MAC,否则使用报文的源MAC */
 	if (memcmp(pack_dhcp->chaddr, nmac, PKT_ETH_ALEN))
 		memcpy(mac, pack_dhcp->chaddr, PKT_ETH_ALEN);
 	else
@@ -3496,6 +3536,7 @@ int dhcp_getreq(struct dhcp_ctx *ctx, uint8_t * pack, size_t len)
   /** if (conn->authstate == DHCP_AUTH_NONE) XXX **/
 	{
 		if (this->cb_request &&
+			/* cb_dhcp_request */
 		    this->cb_request(conn, &addr, pack, len)) {
 			log_dbg("NAK: auth-none");
 			return dhcp_sendNAK(conn, pack, len);
@@ -3509,6 +3550,7 @@ int dhcp_getreq(struct dhcp_ctx *ctx, uint8_t * pack, size_t len)
 	/* Otherwise ignore the request */
 	switch (message_type->v[0]) {
 	case DHCPDISCOVER:
+		/* 分配到了地址,则回offer */
 		if (conn->hisip.s_addr)
 			dhcp_sendOFFER(conn, pack, len);
 		return 0;
@@ -3518,6 +3560,7 @@ int dhcp_getreq(struct dhcp_ctx *ctx, uint8_t * pack, size_t len)
 			char send_ack = 0;
 
 			if (!conn->hisip.s_addr) {
+			/* 客户端请求的IP没有找到,回NAK */
 #if(_debug_)
 				log_dbg("hisip not set!");
 #endif
@@ -3639,6 +3682,10 @@ int dhcp_receive_arp(struct dhcp_ctx *ctx, uint8_t * pack, size_t len);
  *  dhcp_receive_ip()
  *  Received a packet from the dhcpif
  */
+/*
+1. 从dhcp_decaps_cb根据IP协议过来
+2. dhcp_receive_ipv6
+*/
 int dhcp_receive_ip(struct dhcp_ctx *ctx, uint8_t * pack, size_t len)
 {
 	struct dhcp_t *this = ctx->parent;
@@ -3652,6 +3699,7 @@ int dhcp_receive_ip(struct dhcp_ctx *ctx, uint8_t * pack, size_t len)
 
 	char do_checksum = 0;
 	char allowed = 0;
+	/* 客户端是否有IP地址 */
 	char has_ip = 0;
 	char is_dhcp = 0;
 
@@ -3786,6 +3834,7 @@ int dhcp_receive_ip(struct dhcp_ctx *ctx, uint8_t * pack, size_t len)
 #endif
 	    ) {
 		log_dbg("dhcp/bootps request being processed");
+		/* 处理DHCP报文 */
 		(void)dhcp_getreq(ctx, pack, len);
 		OTHER_RECEIVED(conn, pack_iph);
 		return 0;
@@ -3794,6 +3843,7 @@ int dhcp_receive_ip(struct dhcp_ctx *ctx, uint8_t * pack, size_t len)
 	/* 
 	 *  Check to see if we know MAC address
 	 */
+	/* 查询或创建一个连接描述符 */
 	if (!dhcp_hashget(this, &conn, pack_ethh->src)) {
 
 		if (this->debug)
@@ -3823,6 +3873,7 @@ int dhcp_receive_ip(struct dhcp_ctx *ctx, uint8_t * pack, size_t len)
 		}
 
 		/* Allocate new connection */
+		/* 建立一个新节点 */
 		if (dhcp_newconn(this, &conn, pack_ethh->src)) {
 			log_dbg("dropping packet; out of connections");
 			return 0;	/* Out of connections */
@@ -3830,6 +3881,7 @@ int dhcp_receive_ip(struct dhcp_ctx *ctx, uint8_t * pack, size_t len)
 	}
 
 	/* Return if we do not know peer */
+	/* 没有找到或创建节点失败 */
 	if (!conn) {
 		log_dbg("dropping packet; no peer");
 		return 0;
@@ -3912,6 +3964,7 @@ int dhcp_receive_ip(struct dhcp_ctx *ctx, uint8_t * pack, size_t len)
 	}
 #else
 	has_ip = conn->hisip.s_addr != 0;
+	/* 认证状态 */
 	authstate = conn->authstate;
 #endif
 
@@ -3933,15 +3986,18 @@ int dhcp_receive_ip(struct dhcp_ctx *ctx, uint8_t * pack, size_t len)
 	/* 
 	 *  Request an IP address 
 	 */
+	/* 未认证 */
 	if ((authstate == DHCP_AUTH_NONE) && (
 #ifdef ENABLE_UAMANYIP
 						     _options.uamanyip ||
 #endif
+						/* 目的IP是一个单播IP地址 */
 						     ((pack_iph->daddr != 0) &&
 						      (pack_iph->daddr !=
 						       0xffffffff)))) {
 		addr.s_addr = pack_iph->saddr;
 		if (this->cb_request)
+			/* cb_dhcp_request */
 			if (this->cb_request(conn, &addr, 0, 0)) {
 				log_dbg("dropping packet; ip not known: %s",
 					inet_ntoa(addr));
@@ -4106,6 +4162,10 @@ int dhcp_receive_ip(struct dhcp_ctx *ctx, uint8_t * pack, size_t len)
 
 	/*done: */
 
+	/* 1. 未修改报文
+	   2. 目的IP和Port修改为HS_UAMLISTEN HS_UAMPORT
+	*/
+
 #ifdef ENABLE_TAP
 	if (_options.usetap) {
 		memcpy(pack_ethh->dst, tuntap(tun).hwaddr, PKT_ETH_ALEN);
@@ -4115,8 +4175,9 @@ int dhcp_receive_ip(struct dhcp_ctx *ctx, uint8_t * pack, size_t len)
 	if (do_checksum)
 		chksum(pack_iph);
 
+	/* 发送数据 */
 	if (has_ip && (this->cb_data_ind)) {
-
+		/* cb_dhcp_data_ind */
 		this->cb_data_ind(conn, pack, len);
 
 	} else {
@@ -5446,6 +5507,7 @@ void dhcp_peer_update(char force)
 }
 #endif
 
+/* dhcp_decaps */
 static
 int dhcp_decaps_cb(void *pctx, struct pkt_buffer *pb)
 {
@@ -5479,6 +5541,7 @@ int dhcp_decaps_cb(void *pctx, struct pkt_buffer *pb)
 	}
 #endif
 
+	/* 取协议 */
 	if (!prot) {
 		struct pkt_ethhdr_t *ethh = pkt_ethhdr(packet);
 		prot = ntohs(ethh->prot);
@@ -5535,6 +5598,7 @@ int dhcp_decaps_cb(void *pctx, struct pkt_buffer *pb)
 		return 0;
 	}
 
+	/* 根据协议调用函数 */
 	switch (prot) {
 
 #ifdef ENABLE_EAPOL
@@ -5599,6 +5663,7 @@ int dhcp_decaps_cb(void *pctx, struct pkt_buffer *pb)
  * Call this function when a new IP packet has arrived. This function
  * should be part of a select() loop in the application.
  **/
+/* HS_LANIF接口上收到报文后(PF_PACKET的所有报文),调用该函数处理 */
 int dhcp_decaps(struct dhcp_t *this, int idx)
 {
 	ssize_t length = -1;
@@ -5631,6 +5696,7 @@ int dhcp_decaps(struct dhcp_t *this, int idx)
 #ifdef ENABLE_MULTILAN
 	iface = &this->rawif[idx];
 #else
+	/* 取监听的接口 */
 	iface = &this->rawif[0];
 #endif
 #endif
@@ -5815,6 +5881,11 @@ int dhcp_relay_decaps(struct dhcp_t *this, int idx)
  * Called from the tun_ind function. This method is passed either
  * an Ethernet frame or an IP packet. 
  **/
+/*
+cb_tun_ind
+
+发送报文给客户端
+*/
 int dhcp_data_req(struct dhcp_conn_t *conn, struct pkt_buffer *pb, int ethhdr)
 {
 	struct dhcp_t *this = conn->parent;
@@ -5902,6 +5973,7 @@ int dhcp_data_req(struct dhcp_conn_t *conn, struct pkt_buffer *pb, int ethhdr)
 	authstate = conn->authstate;
 #endif
 
+	/* 设置以太网头 */
 	dhcp_ethhdr(conn, packet, conn->hismac, dhcp_nexthop(this),
 		    PKT_ETH_PROTO_IP);
 
@@ -6009,11 +6081,13 @@ int dhcp_data_req(struct dhcp_conn_t *conn, struct pkt_buffer *pb, int ethhdr)
  * dhcp_sendARP()
  * Send ARP message to peer
  **/
+/* 只回tun口的ARP */
 static
 int dhcp_sendARP(struct dhcp_conn_t *conn, uint8_t * pack, size_t len)
 {
 	uint8_t packet[1500];
 	struct dhcp_t *this = conn->parent;
+	/* 要查询的IP */
 	struct in_addr reqaddr;
 
 	struct arp_packet_t *pack_arp = pkt_arppkt(pack);
@@ -6067,7 +6141,9 @@ int dhcp_receive_arp(struct dhcp_ctx *ctx, uint8_t * pack, size_t len)
 	struct dhcp_t *this = ctx->parent;
 
 	struct dhcp_conn_t *conn = 0;
+	/* 客户端IP */
 	struct in_addr reqaddr;
+	/* 要查询的IP */
 	struct in_addr taraddr;
 
 	struct pkt_ethhdr_t *pack_ethh = pkt_ethhdr(pack);
@@ -6135,6 +6211,7 @@ int dhcp_receive_arp(struct dhcp_ctx *ctx, uint8_t * pack, size_t len)
 #endif
 
 	/* Check to see if we know MAC address. */
+	/* 根据客户端MAC查找 */
 	if (dhcp_hashget(this, &conn, pack_arp->sha)) {
 		log_dbg("ARP: Address not found: %s", inet_ntoa(reqaddr));
 
@@ -6184,6 +6261,7 @@ int dhcp_receive_arp(struct dhcp_ctx *ctx, uint8_t * pack, size_t len)
 		log_dbg("ARP: Ignoring self-discovery: %s", inet_ntoa(taraddr));
 
 		/* If a static ip address... */
+		/* cb_dhcp_request */
 		this->cb_request(conn, &taraddr, 0, 0);
 
 		return 0;
@@ -6211,6 +6289,7 @@ int dhcp_receive_arp(struct dhcp_ctx *ctx, uint8_t * pack, size_t len)
 	}
 
 	if (conn->authstate == DHCP_AUTH_NONE)
+		/* cb_dhcp_request */
 		this->cb_request(conn, &reqaddr, 0, 0);
 
 	if (memcmp(&_options.dhcplisten.s_addr, &taraddr.s_addr, 4) &&

@@ -20,6 +20,7 @@
 #ifndef _CHILLI_MODULE_H
 #define _CHILLI_MODULE_H
 
+/* ¶¯Ì¬¿â */
 struct chilli_module {
 	void *lib;
 

@@ -59,6 +59,7 @@ struct session_params {
 struct redir_state {
 
 	char username[REDIR_USERNAMESIZE];
+	/* 用户原来要访问的地址 */
 	char userurl[REDIR_USERURLSIZE];
 
 	uint8_t uamchal[REDIR_MD5LEN];
@@ -82,10 +83,12 @@ struct redir_state {
 	uint8_t uamprotocol;
 
 #ifdef ENABLE_USERAGENT
+	/* User-Agent: */
 	char useragent[REDIR_USERAGENTSIZE];
 #endif
 
 #ifdef ENABLE_ACCEPTLANGUAGE
+	/* Accept-Language: */
 	char acceptlanguage[128];
 #endif
 

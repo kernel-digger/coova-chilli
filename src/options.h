@@ -24,6 +24,9 @@
 #include "pkt.h"
 #include "garden.h"
 
+/*
+二进制配置文件
+*/
 struct options_t {
 	int initialized;
 	int foreground;
@@ -116,6 +119,7 @@ struct options_t {
 	char *dhcpif;		/* Interface: eth1 */
 	char *routeif;		/* Interface: eth0 (optional) */
 	uint8_t dhcpmac[PKT_ETH_ALEN];	/* Interface MAC address */
+	/* 没配的时候默认与uamlisten相同 */
 	struct in_addr dhcplisten;	/* IP address to listen to */
 	int lease;		/* DHCP lease time */
 	int leaseplus;		/* DHCP lease grace period */
@@ -157,9 +161,12 @@ struct options_t {
 	char *wisprlogin;	/* Specific WISPr login url */
 	char *usestatusfile;	/* Specific status file to use */
 
+	/* HS_UAMLISTEN=10.1.0.1 tun口的IP地址*/
 	struct in_addr uamlisten;	/* IP address of local authentication */
+	/* HS_UAMPORT=3990 监听的TCP端口号,如3990 */
 	int uamport;		/* TCP port to listen to */
 #ifdef ENABLE_UAMUIPORT
+	/* HS_UAMUIPORT=4990 */
 	int uamuiport;		/* TCP port to listen to */
 #endif
 	int max_clients;	/* Max subscriber/clients */
@@ -380,10 +387,12 @@ struct options_t {
 #ifdef ENABLE_MODULES
 #define MAX_MODULES 4
 	struct {
+		/* 动态库名称 */
 		char name[32];
 		char conf[128];
 		void *ctx;
 	} modules[MAX_MODULES];
+	/* *.so动态库目录 */
 	char *moddir;
 #endif
 

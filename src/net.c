@@ -749,10 +749,15 @@ net_read_dispatch_eth(net_interface * netif, net_handler func, void *ctx)
 		if (length <= 0)
 			return length;
 		pb.length = length;
+		/* dhcp_decaps_cb tun_decaps_cb */
 		return func(ctx, &pb);
 	}
 }
 
+/*
+tun_decaps
+
+*/
 ssize_t net_read_dispatch(net_interface * netif, net_handler func, void *ctx)
 {
 	struct pkt_buffer pb;
@@ -764,6 +769,7 @@ ssize_t net_read_dispatch(net_interface * netif, net_handler func, void *ctx)
 	if (length <= 0)
 		return length;
 	pb.length = length;
+	/* tun_decaps_cb */
 	return func(ctx, &pb);
 }
 
@@ -1282,6 +1288,10 @@ int net_open_eth(net_interface * netif)
 
 	memset(&ifr, 0, sizeof(ifr));
 
+	/*
+	   SOCK_DGRAM 报文不包含以太网头
+	   SOCK_RAW 报文包含以太网头
+	*/
 	/* Create socket */
 	if ((netif->fd = socket(PF_PACKET,
 				netif->idx ? SOCK_DGRAM : SOCK_RAW,

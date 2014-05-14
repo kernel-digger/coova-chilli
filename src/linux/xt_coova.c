@@ -15,6 +15,7 @@
  * published by the Free Software Foundation.
  *
  */
+/* 内核空间的模块 */
 #include <linux/init.h>
 #include <linux/ip.h>
 #include <linux/ipv6.h>

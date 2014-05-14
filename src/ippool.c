@@ -365,6 +365,7 @@ int ippool_new(struct ippool_t **this,
 	(*this)->statsize = statsize;
 	(*this)->listsize = listsize;
 
+	/* 分配所有IP地址的描述符数组空间 */
 	if (!((*this)->member = calloc(sizeof(struct ippoolm_t), listsize))) {
 		log_err(0, "Failed to allocate memory for members in ippool");
 		return -1;
@@ -381,6 +382,7 @@ int ippool_new(struct ippool_t **this,
 	(*this)->hashmask = (*this)->hashsize - 1;
 
 	/* Allocate hash table */
+	/* 分配指针数组,哈希表的桶头 */
 	if (!((*this)->hash =
 	      calloc(sizeof(struct ippoolm_t *), (*this)->hashsize))) {
 		log_err(0,
@@ -456,6 +458,10 @@ int ippool_free(struct ippool_t *this)
 }
 
 /* Find an IP address in the pool */
+/*
+
+@return: 0 - 找到; -1 - 未找到
+*/
 int ippool_getip(struct ippool_t *this,
 		 struct ippoolm_t **member, struct in_addr *addr)
 {

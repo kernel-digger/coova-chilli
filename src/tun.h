@@ -33,6 +33,7 @@ struct tun_t {
 	int addrs;		/* Number of allocated IP addresses */
 	int routes;		/* One if we allocated an automatic route */
 	int routeidx;		/* default route interface index */
+	/* cb_tun_ind */
 	int (*cb_ind) (struct tun_t * tun, struct pkt_buffer * pb, int idx);
 
 #ifdef ENABLE_MULTIROUTE
@@ -59,6 +60,7 @@ struct tun_t {
       net_close(&(tun)->_interfaces[i]);}
 
 #else
+	/* 只有一个tun口 */
 	struct _net_interface _tuntap;
 
 #define tun(x,i) ((x)->_tuntap)

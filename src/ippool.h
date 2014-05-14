@@ -42,6 +42,7 @@
 
 struct ippoolm_t;		/* Forward declaration */
 
+/* 所有的IP地址 */
 struct ippool_t {
 	int dynsize;		/* Total number of dynamic addresses */
 	int statsize;		/* Total number of static addresses */
@@ -50,10 +51,13 @@ struct ippool_t {
 	int allowstat;		/* Allow static IP address allocation */
 	struct in_addr stataddr;	/* Static address range network address */
 	struct in_addr statmask;	/* Static address range network mask */
+	/* 指向listsize个struct ippoolm_t的数组 */
 	struct ippoolm_t *member;	/* Listsize array of members */
+	/* 哈希表桶头节点个数 */
 	int hashsize;		/* Size of hash table */
 	int hashlog;		/* Log2 size of hash table */
 	int hashmask;		/* Bitmask for calculating hash */
+	/* 指针数组,哈希表的桶头 */
 	struct ippoolm_t **hash;	/* Hashsize array of pointer to member */
 	struct ippoolm_t *firstdyn;	/* Pointer to first free dynamic member */
 	struct ippoolm_t *lastdyn;	/* Pointer to last free dynamic member */
@@ -61,6 +65,7 @@ struct ippool_t {
 	struct ippoolm_t *laststat;	/* Pointer to last free static member */
 };
 
+/* 每个IP地址的描述符 */
 struct ippoolm_t {
 #ifndef IPPOOL_NOIP6
 	struct in6_addr addr;	/* IP address of this member */
@@ -71,6 +76,7 @@ struct ippoolm_t {
 	char is_static;		/* 0= dynamic; 1 = static */
 	struct ippoolm_t *nexthash;	/* Linked list part of hash table */
 	struct ippoolm_t *prev, *next;	/* Linked list of free dynamic or static */
+	/* 指针(struct app_conn_t *) */
 	void *peer;		/* Pointer to peer protocol handler */
 };
 

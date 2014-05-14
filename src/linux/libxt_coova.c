@@ -1,5 +1,6 @@
 /* -*- mode: c; c-basic-offset: 8 -*- */
 /* Shared library add-on to iptables to add coova support. */
+/* 用户空间共享库 */
 #include <stdio.h>
 #include <netdb.h>
 #include <string.h>
@@ -70,6 +71,7 @@ static void coova_check(unsigned int flags)
 static void coova_print(const void *ip, const struct xt_entry_match *match,
                          int numeric)
 {
+	/* 参数是保存在struct xt_entry_match的data字段 */
 	const struct xt_coova_mtinfo *info = (const void *)match->data;
 	if (info->invert)
 		fputc('!', stdout);

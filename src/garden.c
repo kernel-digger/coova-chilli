@@ -333,6 +333,9 @@ void garden_patricia_reload()
 }
 #endif
 
+/*
+@return: 1 - ’“µΩ; 0 - Œ¥’“µΩ
+*/
 int garden_check(pass_through * ptlist, uint32_t * pcnt,
 		 pass_through ** pt_match, struct pkt_ipphdr_t *ipph, int dst
 #ifdef HAVE_PATRICIA

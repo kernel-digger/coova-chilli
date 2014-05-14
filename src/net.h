@@ -181,7 +181,10 @@ typedef struct _net_interface {
 	/* hardware/link */
 	uint16_t protocol;
 	uint8_t hwtype;
+	/* dhcpif接口的MAC,或者是配置的MAC */
 	uint8_t hwaddr[PKT_ETH_ALEN];
+	/* tun接口的名称 */
+	/* dhcpif接口的名称 */
 	char devname[IFNAMSIZ + 1];
 	int devflags;
 	int ifindex;
@@ -205,6 +208,8 @@ typedef struct _net_interface {
 #endif
 
 	/* socket/descriptor */
+	/* 建立在字符设备/dev/net/tun上的描述符 */
+	/* 建立在dhcpif接口上的PF_PACKET描述符 */
 	int fd;
 
 #ifdef HAVE_NETFILTER_QUEUE

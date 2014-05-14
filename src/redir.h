@@ -118,6 +118,7 @@ struct redir_conn_t {
 	 */
 	unsigned short type;	/* REDIR_LOGOUT, LOGIN, PRELOGIN, CHALLENGE, MSDOWNLOAD */
 	unsigned char format;	/* REDIR_FMT_DEFAULT, REDIR_FMT_JSON */
+	/* Cookie: */
 	char httpcookie[REDIR_COOKIESIZE];	/* Browser Cookies */
 	char lang[REDIR_LANGSIZE];	/* Query string parameter for language */
 	char wwwfile[REDIR_USERNAMESIZE];	/* File request, i.e. PATH_INFO */
@@ -133,6 +134,7 @@ struct redir_conn_t {
 	 */
 	struct in_addr nasip;
 	uint32_t nasport;
+	/* 客户端MAC */
 	uint8_t hismac[PKT_ETH_ALEN];	/* His MAC address */
 	uint8_t ourmac[PKT_ETH_ALEN];	/* Our MAC address */
 	struct in_addr ourip;	/* IP address to listen to */
@@ -159,8 +161,11 @@ struct redir_httpreq_t {
 	char allow_post:1;
 	char is_post:1;
 
+	/* Host: */
 	char host[256];
+	/* GET HEAD POST */
 	char path[256];
+	/* query string */
 	char qs[REDIR_USERURLSIZE];
 
 	bstring data_in;
@@ -226,19 +231,27 @@ struct redir_socket_t {
 };
 
 struct redir_t {
+	/* fd[0] - 3990端口, fd[1] - 4990端口
+	   配置文件中的HS_UAMPORT=3990 HS_UAMUIPORT=4990
+	*/
 	int fd[2];		/* File descriptors */
 	int debug;
 #if defined(USING_IPC_UNIX)
+	/* 进程间通信,chilli.ipc文件,如/var/run/chilli.eth1.ipc */
 	int msgfd;
 #else
 	int msgid;		/* Message Queue */
 #endif
+	/* uamlisten的地址 */
 	struct in_addr addr;
+	/* uamport,例如3990 */
 	int port;
 #ifdef ENABLE_UAMUIPORT
+	/* 如8104 */
 	int uiport;
 #endif
 
+	/* 重定向的开始时间 */
 	int starttime;
 
 	char *url;
@@ -252,6 +265,7 @@ struct redir_t {
 
 	unsigned char nas_hwaddr[6];	/* Hardware address of NAS */
 
+	/* cb_redir_getstate */
 	int (*cb_getstate) (struct redir_t * redir,
 			    struct sockaddr_in * address,
 			    struct sockaddr_in * baddress,
@@ -266,7 +280,9 @@ struct redir_t {
 
 struct redir_msg_data {
 	uint16_t opt;
+	/* 客户端的IP和Port */
 	struct sockaddr_in address;
+	/* 服务端的IP和Port, 10.1.0.1:3990 */
 	struct sockaddr_in baddress;
 	struct redir_state redir;
 	struct session_params params;

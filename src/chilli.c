@@ -25,10 +25,14 @@
 #include "chilli_module.h"
 #endif
 
+/* chilli_main => tun_new 创建 */
 struct tun_t *tun;		/* TUN instance            */
+/* chilli_main => ippool_new 创建 */
 struct ippool_t *ippool;	/* Pool of IP addresses */
 struct radius_t *radius;	/* Radius client instance */
+/* chilli_main => dhcp_new 创建 */
 struct dhcp_t *dhcp = NULL;	/* DHCP instance */
+/* chilli_main => redir_new 创建 */
 struct redir_t *redir = NULL;	/* Redir instance */
 
 #ifdef ENABLE_MULTIROUTE
@@ -440,6 +444,7 @@ int chilli_handle_signal(void *ctx, int fd)
 	return 0;
 }
 
+/* 注册信号处理,收到信号后,将信号写入管道,在管道接收时处理对应信号 */
 void chilli_signals(int *with_term, int *with_hup)
 {
 	selfpipe_trap(SIGCHLD);
@@ -458,6 +463,7 @@ void chilli_signals(int *with_term, int *with_hup)
 	}
 }
 
+/* 生成二进制配置文件所使用的文件名称 */
 int chilli_binconfig(char *file, size_t flen, pid_t pid)
 {
 	if (pid == 0) {
@@ -507,6 +513,7 @@ time_t mainclock_wall()
 	return mainclock_towall(mainclock);
 }
 
+/* 更新全局变量mainclock,返回mainclock的值 */
 time_t mainclock_tick()
 {
 #ifdef HAVE_LIBRT
@@ -535,6 +542,7 @@ time_t mainclock_tick()
 	return mainclock;
 }
 
+/* 返回全局变量mainclock的值 */
 time_t mainclock_now()
 {
 	return mainclock;
@@ -904,6 +912,9 @@ int runscript(struct app_conn_t *appconn, char *script, char *loc, char *oloc)
  *
  ***********************************************************/
 
+/*
+为IP地址@hisip分配一个管理结构struct ippoolm_t
+*/
 static int newip(struct ippoolm_t **ipm, struct in_addr *hisip,
 		 uint8_t * hismac)
 {
@@ -1150,6 +1161,7 @@ void session_interval(struct app_conn_t *conn)
 	interimtime = mainclock_diffu(conn->s_state.interim_time);
 
 	if (conn->s_state.authenticated == 1) {
+		/* 总会话时间到了,踢下线 */
 		if ((conn->s_params.sessiontimeout) &&
 		    (sessiontime > conn->s_params.sessiontimeout)) {
 #ifdef ENABLE_SESSIONSTATE
@@ -1168,6 +1180,7 @@ void session_interval(struct app_conn_t *conn)
 #endif
 			terminate_appconn(conn,
 					  RADIUS_TERMINATE_CAUSE_SESSION_TIMEOUT);
+		/* 空闲时间到了 */
 		} else if ((conn->s_params.idletimeout)
 			   && (idletime > conn->s_params.idletimeout)) {
 #ifdef ENABLE_SESSIONSTATE
@@ -2659,6 +2672,9 @@ static int fwd_layer3(struct app_conn_t *appconn,
  * a Ethernet frame or an IP packet. 
  */
 
+/*
+tun_decaps_cb
+*/
 int cb_tun_ind(struct tun_t *tun, struct pkt_buffer *pb, int idx)
 {
 	struct in_addr dst;
@@ -3025,6 +3041,13 @@ int cb_tun_ind(struct tun_t *tun, struct pkt_buffer *pb, int idx)
  *
  *********************************************************/
 
+/*
+取客户端的状态
+这里是fork出来的子进程
+取出的是fork前主进程中的状态
+
+@return: 0 - 未认证; 1 - 已认证; -1 - 出错
+*/
 int cb_redir_getstate(struct redir_t *redir,
 		      struct sockaddr_in *address,
 		      struct sockaddr_in *baddress, struct redir_conn_t *conn)
@@ -3043,6 +3066,7 @@ int cb_redir_getstate(struct redir_t *redir,
 	}
 #endif
 
+	/* 查找客户端IP的管理结构 */
 	if (ippool_getip(ippool, &ipm, addr)) {
 		log_dbg("did not find %s", inet_ntoa(*addr));
 		return -1;
@@ -5295,6 +5319,12 @@ int cb_radius_coa_ind(struct radius_t *radius, struct radius_packet_t *pack,
 /* DHCP callback for allocating new IP address */
 /* In the case of WPA it is allready allocated,
  * for UAM address is allocated before authentication */
+/*
+dhcp_receive_ip
+dhcp_getreq
+
+@addr: 客户端IP
+*/
 int cb_dhcp_request(struct dhcp_conn_t *conn, struct in_addr *addr,
 		    uint8_t * dhcp_pkt, size_t dhcp_len)
 {
@@ -5355,6 +5385,7 @@ int cb_dhcp_request(struct dhcp_conn_t *conn, struct in_addr *addr,
 			if ((_options.macoklen) &&
 			    (appconn->dnprot == DNPROT_DHCP_NONE) &&
 			    !maccmp(conn->hismac)) {
+			/* MAC地址白名单 */
 
 				/*
 				 *  When using macallowed option, and hismac matches.
@@ -5514,10 +5545,12 @@ int cb_dhcp_request(struct dhcp_conn_t *conn, struct in_addr *addr,
 #ifdef ENABLE_LAYER3
 		if (!_options.layer3)
 #endif
+			/* 认证状态置为目的IP地址做转换 */
 			conn->authstate = DHCP_AUTH_DNAT;
 	}
 
 	/* If IP was requested before authentication it was UAM */
+	/* 先申请IP地址,说明需要访问3990端口来做认证 */
 	if (appconn->dnprot == DNPROT_DHCP_NONE)
 		appconn->dnprot = DNPROT_UAM;
 
@@ -5527,6 +5560,7 @@ int cb_dhcp_request(struct dhcp_conn_t *conn, struct in_addr *addr,
 	return 0;
 }
 
+/* 分配一个struct app_conn_t节点并加入链表,或找一个空闲节点 */
 int chilli_connect(struct app_conn_t **appconn, struct dhcp_conn_t *conn)
 {
 	struct app_conn_t *aconn;
@@ -5567,6 +5601,9 @@ int chilli_connect(struct app_conn_t **appconn, struct dhcp_conn_t *conn)
 }
 
 /* DHCP callback for establishing new connection */
+/*
+dhcp_newconn里调用过来
+*/
 int cb_dhcp_connect(struct dhcp_conn_t *conn)
 {
 	struct app_conn_t *appconn;
@@ -6098,6 +6135,7 @@ int cb_dhcp_data_ind(struct dhcp_conn_t *conn, uint8_t * pack, size_t len)
 	case DNPROT_NULL:
 	case DNPROT_DHCP_NONE:
 		log_dbg("NULL: %d", appconn->dnprot);
+		/* 没有认证方式 */
 		return -1;
 
 	case DNPROT_UAM:
@@ -6135,6 +6173,9 @@ int cb_dhcp_data_ind(struct dhcp_conn_t *conn, uint8_t * pack, size_t len)
 	 * If the ip dst is uamlisten and pdst is uamport we won't call leaky_bucket,
 	 * and we always send these packets through to the tun/tap interface (index 0)
 	 */
+	/* 1. 被修改了目的IP和Port为10.1.0.1:3990
+	   2. 直接访问10.1.0.1:3990
+	*/
 	if (ipph->daddr == _options.uamlisten.s_addr &&
 	    (ipph->dport == htons(_options.uamport)
 #ifdef ENABLE_UAMUIPORT
@@ -6354,6 +6395,9 @@ int cb_dhcp_eap_ind(struct dhcp_conn_t *conn, uint8_t * pack, size_t len)
  *
  ***********************************************************/
 
+/*
+处理redir子进程发来的消息
+*/
 int static uam_msg(struct redir_msg_t *msg)
 {
 
@@ -7562,6 +7606,10 @@ int chilli_io(int fd_ctrl_r, int fd_ctrl_w, int fd_pkt_r, int fd_pkt_w)
 #endif
 
 #ifdef USING_IPC_UNIX
+/*
+进程间通信
+接收子进程发来的信息
+*/
 int static redir_msg(struct redir_t *this)
 {
 	struct redir_msg_t msg;
@@ -7569,8 +7617,10 @@ int static redir_msg(struct redir_t *this)
 	socklen_t len = sizeof(remote);
 	int socket = safe_accept(this->msgfd, (struct sockaddr *)&remote, &len);
 	if (socket > 0) {
+		/* 读取子进程发来的消息 */
 		int msgresult = safe_read(socket, &msg, sizeof(msg));
 		if (msgresult == sizeof(msg)) {
+			/* 子进程查询 */
 			if (msg.mtype == REDIR_MSG_STATUS_TYPE) {
 				struct redir_conn_t conn;
 				memset(&conn, 0, sizeof(conn));
@@ -7578,12 +7628,14 @@ int static redir_msg(struct redir_t *this)
 						      &msg.mdata.address,
 						      &msg.mdata.baddress,
 						      &conn) != -1) {
+					/* 发送给子进程 */
 					if (safe_write
 					    (socket, &conn, sizeof(conn)) < 0) {
 						log_err(errno,
 							"redir_msg writing");
 					}
 				}
+			/* 子进程上报 */
 			} else {
 				uam_msg(&msg);
 			}
@@ -7679,6 +7731,7 @@ static int session_timeout()
 }
 #endif
 
+/* */
 int chilli_main(int argc, char **argv)
 {
 	select_ctx sctx;
@@ -7738,11 +7791,13 @@ int chilli_main(int argc, char **argv)
 #if defined (__FreeBSD__)  || defined (__APPLE__) || defined (__OpenBSD__)
 		if (fork() > 0) {
 			exit(0);
+		}
 #else
 		if (daemon(1, 1)) {
 			log_err(errno, "daemon() failed!");
+		}
 #endif
-		} else {
+		else {
 
 			/*
 			 *  We switched PID when we forked. 
@@ -7876,6 +7931,7 @@ int chilli_main(int argc, char **argv)
 		exit(1);
 	}
 
+	/* 设置tun接口的IP */
 	tun_setaddr(tun,
 		    &_options.uamlisten, &_options.uamlisten, &_options.mask);
 
@@ -8108,6 +8164,7 @@ int chilli_main(int argc, char **argv)
 	net_select_reg(&sctx, dhcp->relayfd, SELECT_READ,
 		       (select_callback) dhcp_relay_decaps, dhcp, 0);
 
+	/* LAN接口上的PF_PACKET */
 	for (i = 0; i < MAX_RAWIF && dhcp->rawif[i].fd > 0; i++) {
 		net_select_reg(&sctx, dhcp->rawif[i].fd, SELECT_READ,
 			       (select_callback) dhcp_decaps, dhcp, i);
@@ -8137,6 +8194,7 @@ int chilli_main(int argc, char **argv)
 		       (select_callback) redir_msg, redir, 0);
 #endif
 
+	/* 不是使用单独的进程,在主进程中accept,然后fork子进程处理 */
 	if (!_options.redir) {
 		net_select_reg(&sctx, redir->fd[0], SELECT_READ,
 			       (select_callback) redir_accept, redir, 0);
@@ -8156,6 +8214,7 @@ int chilli_main(int argc, char **argv)
 #endif
 
 	mainclock_tick();
+	/* 主循环 */
 	while (keep_going) {
 
 		if (reload_config) {

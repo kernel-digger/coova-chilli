@@ -30,6 +30,7 @@
 
 static int optionsdebug = 0;	/* TODO: Should be changed to instance */
 
+/* 定时器到,记录退出时卡在哪一步 */
 static int termstate = REDIR_TERM_INIT;	/* When we were terminated */
 
 char credits[] =
@@ -1697,6 +1698,12 @@ int redir_new(struct redir_t **redir,
 	return 0;
 }
 
+/*
+创建,监听TCP的socket
+HS_UAMLISTEN=10.1.0.1
+HS_UAMPORT=3990
+HS_UAMUIPORT=4990
+*/
 int redir_listen(struct redir_t *redir)
 {
 	struct sockaddr_in address;
@@ -1812,6 +1819,9 @@ int redir_listen(struct redir_t *redir)
 	return success ? 0 : -1;
 }
 
+/*
+进程间通信
+*/
 int redir_ipc(struct redir_t *redir)
 {
 #ifdef USING_IPC_UNIX
@@ -2142,12 +2152,16 @@ static int redir_getreq(struct redir_t *redir, struct redir_socket_t *sock,
 			return -1;
 		}
 
+		/* 找子串 */
 		while ((eol = strstr(buffer, "\r\n"))) {
+			/* 行数据长度 */
 			size_t linelen = eol - buffer;
+			/* 一行数据 */
 			*eol = 0;
 
 			if (lines++ == 0) {	/* first line */
 				char *p1 = buffer;
+				/* query string */
 				char qs_delim = '?';
 				char *p2;
 
@@ -2178,6 +2192,7 @@ static int redir_getreq(struct redir_t *redir, struct redir_socket_t *sock,
 						p1++;
 				}
 
+				/* 以'/'开始 */
 				if (*p1 == '/')
 					p1++;
 				else {
@@ -2197,6 +2212,7 @@ static int redir_getreq(struct redir_t *redir, struct redir_socket_t *sock,
 				}
 				*p2 = 0;
 
+				/* 问号或空格前面的路径内容 */
 				safe_strncpy(path, p1, sizeof(httpreq->path));
 
 				log_dbg("The path: %s", path);
@@ -2364,6 +2380,8 @@ static int redir_getreq(struct redir_t *redir, struct redir_socket_t *sock,
 		}
 	}
 
+	/* 第一个重定向的时候,客户端"GET / HTTP/1.1\r\n",conn->type为默认值0
+	*/
 	switch (conn->type) {
 
 	case REDIR_STATUS:
@@ -2383,6 +2401,7 @@ static int redir_getreq(struct redir_t *redir, struct redir_socket_t *sock,
 		{
 			bstring bt = bfromcstr("");
 
+			/* 取query string中的字段 */
 			if (!redir_getparam(redir, httpreq->qs, "lang", bt))
 				bstrtocstr(bt, conn->lang, sizeof(conn->lang));
 
@@ -2572,6 +2591,7 @@ static int redir_getreq(struct redir_t *redir, struct redir_socket_t *sock,
 
 	default:
 		{
+			/* 用户原来要访问的地址 */
 			safe_snprintf(conn->s_state.redir.userurl,
 				      sizeof(conn->s_state.redir.userurl),
 				      "http://%s/%s%s%s",
@@ -3238,11 +3258,16 @@ int is_local_user(struct redir_t *redir, struct redir_conn_t *conn)
  matching MAC and src IP addresses.
 */
 
+/*
+重定向的accept函数
+*/
 int redir_accept(struct redir_t *redir, int idx)
 {
 	int status;
 	int new_socket;
+	/* 客户端的IP和Port */
 	struct sockaddr_in address;
+	/* 服务端的IP和Port */
 	struct sockaddr_in baddress;
 	socklen_t addrlen;
 	char buffer[128];
@@ -3259,6 +3284,7 @@ int redir_accept(struct redir_t *redir, int idx)
 
 	addrlen = sizeof(struct sockaddr_in);
 
+	/* 获取服务端的IP和PORT */
 	if (getsockname(redir->fd[idx], (struct sockaddr *)&baddress, &addrlen)
 	    < 0) {
 		log_warn(errno, "getsockname() failed!");
@@ -3278,9 +3304,12 @@ int redir_accept(struct redir_t *redir, int idx)
 	}
 
 	if (status > 0) {	/* parent */
+	/* 父进程返回chilli_main的net_run_selected,主循环中继续收包 */
 		safe_close(new_socket);
 		return 0;
 	}
+
+	/* 子进程 */
 
 	safe_snprintf(buffer, sizeof(buffer), "%s",
 		      inet_ntoa(address.sin_addr));
@@ -3297,7 +3326,7 @@ int redir_accept(struct redir_t *redir, int idx)
 		execv(*binqqargs, binqqargs);
 
 	} else {
-
+		/* accept的new_socket已经复制到0,1 */
 		return redir_main(redir, 0, 1, &address, &baddress, idx, 0);
 
 	}
@@ -3335,6 +3364,10 @@ static int _redir_close_exit(int infd, int outfd)
 }
 
 #ifdef USING_IPC_UNIX
+/*
+进程间通信
+redir子进程发送数据给chilli主进程
+*/
 int redir_send_msg(struct redir_t *this, struct redir_msg_t *msg)
 {
 	struct sockaddr_un remote;
@@ -3389,6 +3422,7 @@ pid_t redir_fork(int in, int out)
 		 */
 		struct itimerval itval;
 
+		/* 使用alarm信号超时退出子进程 */
 		set_signal(SIGALRM, redir_alarm);
 
 		memset(&itval, 0, sizeof(itval));
@@ -3412,6 +3446,7 @@ pid_t redir_fork(int in, int out)
 		if (fcntl(out, F_DUPFD, 1) == -1)
 			return -1;
 #else
+		/* 复制socket描述符 */
 		if (dup2(in, 0) == -1)
 			return -1;
 		if (dup2(out, 1) == -1)
@@ -3422,12 +3457,20 @@ pid_t redir_fork(int in, int out)
 	return pid;
 }
 
+/*
+fork出来的子进程
+
+@address: 客户端的IP和Port
+@baddress: 服务端的IP和Port, 10.1.0.1:3990
+@isui:
+@rreq: 0 - 主进程fork出来的redir;
+*/
 int redir_main(struct redir_t *redir,
 	       int infd, int outfd,
 	       struct sockaddr_in *address,
 	       struct sockaddr_in *baddress, int isui, redir_request * rreq)
 {
-
+	/* 生成的挑战字符串 */
 	char hexchal[1 + (2 * REDIR_MD5LEN)];
 	unsigned char challenge[REDIR_MD5LEN];
 	size_t bufsize = REDIR_MAXBUFFER;
@@ -3483,6 +3526,7 @@ int redir_main(struct redir_t *redir,
 	if (rreq) {
 		httpreq.data_in = rreq->wbuf;
 	}
+/* 生成挑战 */
 #define redir_memcopy(msgtype) \
   redir_challenge(challenge); \
   redir_chartohex(challenge, hexchal, REDIR_MD5LEN); \
@@ -3491,6 +3535,7 @@ int redir_main(struct redir_t *redir,
   log_dbg("---->>> resetting challenge: %s", hexchal)
 
 #ifdef USING_IPC_UNIX
+/* 使用进程间通信,将认证结果发回给主进程 */
 #define redir_msg_send(msgopt) \
   msg.mdata.opt = msgopt; \
   memcpy(&msg.mdata.address, address, sizeof(msg.mdata.address)); \
@@ -3550,8 +3595,10 @@ int redir_main(struct redir_t *redir,
 	}
 
 	/* get_state returns 0 for unauth'ed and 1 for auth'ed */
+	/* cb_redir_getstate 获取fork之前的状态 */
 	state = redir->cb_getstate(redir, address, baddress, &conn);
 
+	/* 获取状态出错 */
 	if (state == -1) {
 #if(_debug_ > 1)
 		log_dbg("getstate() session not found");

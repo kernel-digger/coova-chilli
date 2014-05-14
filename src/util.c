@@ -28,14 +28,17 @@ char *safe_strncpy(char *dst, const char *src, size_t size)
 	return strncpy(dst, src, size);
 }
 
+/* 生成IPC通信文件路径 */
 int statedir_file(char *dst, int dlen, char *file, char *deffile)
 {
 	char *statedir = _options.statedir ? _options.statedir : DEFSTATEDIR;
 	if (!file && deffile) {
 		safe_snprintf(dst, dlen, "%s/%s", statedir, deffile);
 	} else if (file) {
+		/* 绝对路径,直接使用 */
 		if (file[0] == '/')
 			safe_snprintf(dst, dlen, "%s", file);
+		/* 生成绝对路径 */
 		else
 			safe_snprintf(dst, dlen, "%s/%s", statedir, file);
 	}

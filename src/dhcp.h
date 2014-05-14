@@ -88,6 +88,8 @@ struct dhcp_t;			/* Forward declaration */
 
 /* Authentication states */
 #define DHCP_AUTH_NONE        0
+/* dnprot_reject
+命令配置的黑名单MAC dhcp_block_mac */
 #define DHCP_AUTH_DROP        1
 #define DHCP_AUTH_PASS        2
 #define DHCP_AUTH_UNAUTH_TOS  3
@@ -104,17 +106,21 @@ struct dhcp_t;			/* Forward declaration */
 
 struct dhcp_nat_t {
 	uint8_t mac[PKT_ETH_ALEN];
+	/* 客户端原本打算访问的IP地址 */
 	uint32_t dst_ip;
 	uint16_t dst_port;
+	/* 客户端的IP地址 */
 	uint32_t src_ip;
 	uint16_t src_port;
 };
 
+/* 一个STA连接的描述符,每个终端都创建一个 */
 struct dhcp_conn_t {
 	struct dhcp_conn_t *nexthash;	/* Linked list part of hash table */
 	struct dhcp_conn_t *next;	/* Next in linked list. 0: Last */
 	struct dhcp_conn_t *prev;	/* Previous in linked list. 0: First */
 	struct dhcp_t *parent;	/* Parent of all connections */
+	/* 指针(struct app_conn_t *) */
 	void *peer;		/* Peer protocol handler */
 
 #ifdef ENABLE_CLUSTER
@@ -127,6 +133,7 @@ struct dhcp_conn_t {
 	uint8_t padding:5;
 
 	time_t lasttime;	/* Last time we heard anything from client */
+	/* STA MAC,哈希表的关键字 */
 	uint8_t hismac[PKT_ETH_ALEN];	/* Peer's MAC address */
 	struct in_addr ourip;	/* IP address to listen to */
 	struct in_addr hisip;	/* Client IP address */
@@ -134,6 +141,12 @@ struct dhcp_conn_t {
 	struct in_addr dns1;	/* Client DNS address */
 	struct in_addr dns2;	/* Client DNS address */
 	char domain[DHCP_DOMAIN_LEN];	/* Domain name to use for DNS lookups */
+	/* DHCP_AUTH_NONE
+	   DHCP_AUTH_DROP
+	   DHCP_AUTH_DNAT
+
+	   cb_dhcp_request中置为DHCP_AUTH_DNAT
+	*/
 	int authstate;		/* 0: Unauthenticated, 1: Authenticated */
 	uint8_t unauth_cp;	/* Unauthenticated codepoint */
 	uint8_t auth_cp;	/* Authenticated codepoint */
@@ -180,9 +193,11 @@ struct dhcp_conn_t {
  * 
  *************************************************************/
 
+/* LAN口的描述符 */
 struct dhcp_t {
 
 	/* network interfaces */
+	/* rawif[0]为LAN口上的PF_PACKET SOCK_RAW */
 	struct _net_interface rawif[MAX_RAWIF];
 
 #ifdef HAVE_NETFILTER_QUEUE
@@ -210,7 +225,9 @@ struct dhcp_t {
 
 	int allowdyn;		/* Allow allocation of IP address on DHCP request */
 
+	/* HS_UAMLISTEN=10.1.0.1,tun口的IP */
 	struct in_addr uamlisten;	/* IP address to redirect HTTP requests to */
+	/* HS_UAMPORT=3990 */
 	uint16_t uamport;	/* TCP port to redirect HTTP requests to */
 
 	//struct in_addr *authip; /* IP address of authentication server */
@@ -220,6 +237,7 @@ struct dhcp_t {
 
 	int noc2c;		/* Prevent client to client access using /32 subnets */
 
+	/* UDP的socket,发送报文给中继 */
 	int relayfd;		/* DHCP relay socket, 0 if not relaying */
 
 	/* Connection management */
@@ -242,13 +260,18 @@ struct dhcp_t {
 	uint32_t num_pass_throughs;
 
 	/* Call back functions */
+	/* cb_dhcp_data_ind */
 	int (*cb_data_ind) (struct dhcp_conn_t * conn, uint8_t * pack,
 			    size_t len);
+	/* cb_dhcp_eap_ind */
 	int (*cb_eap_ind) (struct dhcp_conn_t * conn, uint8_t * pack,
 			   size_t len);
+	/* cb_dhcp_request */
 	int (*cb_request) (struct dhcp_conn_t * conn, struct in_addr * addr,
 			   uint8_t * pack, size_t len);
+	/* cb_dhcp_connect */
 	int (*cb_connect) (struct dhcp_conn_t * conn);
+	/* cb_dhcp_disconnect */
 	int (*cb_disconnect) (struct dhcp_conn_t * conn, int term_cause);
 };
 

@@ -783,6 +783,7 @@ int tun_new(struct tun_t **ptun)
 {
 	struct tun_t *tun;
 
+	/* 分配管理结构 */
 	if (!(tun = *ptun = calloc(1, sizeof(struct tun_t)))) {
 		log_err(errno, "calloc() failed");
 		return EOF;
@@ -794,6 +795,7 @@ int tun_new(struct tun_t **ptun)
 		tun_discover(tun);
 	}
 #else
+	/* 创建虚拟接口 */
 	tuntap_interface(&tun->_tuntap);
 #endif
 
@@ -915,9 +917,13 @@ static int tun_decaps_cb(void *ctx, struct pkt_buffer *pb)
 		}
 	}
 
+	/* cb_tun_ind */
 	return c->this->cb_ind(c->this, pb, c->idx);
 }
 
+/*
+tun口的收包函数
+*/
 int tun_decaps(struct tun_t *this, int idx)
 {
 
@@ -1005,6 +1011,9 @@ static uint32_t dnatip[1024];
 static uint16_t dnatport[1024];
 */
 
+/*
+使用tun接口发送
+*/
 int tun_write(struct tun_t *tun, uint8_t * pack, size_t len, int idx)
 {
 #if defined (__OpenBSD__)
@@ -1033,6 +1042,7 @@ int tun_write(struct tun_t *tun, uint8_t * pack, size_t len, int idx)
 	}
 #endif
 
+	/* 向字符设备写 */
 	return safe_write(tun(tun, idx).fd, pack, len);
 
 #elif defined (__sun__)
@@ -1045,6 +1055,9 @@ int tun_write(struct tun_t *tun, uint8_t * pack, size_t len, int idx)
 #endif
 }
 
+/*
+使用tun口发送
+*/
 int tun_encaps(struct tun_t *tun, uint8_t * pack, size_t len, int idx)
 {
 	int result;

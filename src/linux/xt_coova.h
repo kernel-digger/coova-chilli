@@ -9,6 +9,7 @@ enum {
 	XT_COOVA_NAME_LEN = 200,
 };
 
+/* 内核中及用户空间动态库使用相同的结构传递数据 */
 struct xt_coova_mtinfo {
 	u_int8_t invert;
 	char name[XT_COOVA_NAME_LEN];

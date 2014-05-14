@@ -20,6 +20,7 @@
 
 #include "chilli.h"
 
+/* 管道 selfpipe[0]-读取, selfpipe[1]-写入 */
 static int selfpipe[2] = { -1, -1 };
 
 static void _trigger(int s)
@@ -78,6 +79,7 @@ int selfpipe_init(void)
 	    || (ndelay_on(selfpipe[0]) == -1)
 	    || (coe(selfpipe[0]) == -1))
 		selfpipe_close();
+	/* 返回读取的描述符 */
 	return selfpipe[0];
 }
 

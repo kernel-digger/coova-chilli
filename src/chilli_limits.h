@@ -108,6 +108,7 @@
 #define MAX_RAWIF 4
 #endif
 #else
+/* 一个接口 */
 #define MAX_RAWIF 1
 #endif
 

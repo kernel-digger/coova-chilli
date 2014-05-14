@@ -206,6 +206,7 @@ struct radius_server_t {
 };
 
 struct radius_t {
+	/* UDPµÄsocket */
 	int fd;			/* Socket file descriptor */
 
 	FILE *urandom_fp;	/* /dev/urandom FILE pointer */
@@ -246,6 +247,7 @@ struct radius_t {
 
 	int (*cb_ind) (struct radius_t * radius, struct radius_packet_t * pack,
 		       struct sockaddr_in * peer);
+	/* redir_cb_radius_auth_conf */
 	int (*cb_auth_conf) (struct radius_t * radius,
 			     struct radius_packet_t * pack,
 			     struct radius_packet_t * pack_req, void *cbp);

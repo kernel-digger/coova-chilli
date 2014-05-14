@@ -50,6 +50,7 @@
 
 #define DNPROT_NULL       1
 #define DNPROT_DHCP_NONE  2
+/* 使用3990端口跳转进行portal认证 */
 #define DNPROT_UAM        3
 #define DNPROT_WPA        4
 #ifdef ENABLE_EAPOL
@@ -73,7 +74,9 @@ struct app_conn_t {
 	struct app_conn_t *prev;	/* Previous in linked list. 0: First */
 
 	/* Pointers to protocol handlers */
+	/* 指针(struct ippoolm_t *) 客户端IP地址 */
 	void *uplink;		/* Uplink network interface (Internet) */
+	/* 指针(struct dhcp_conn_t *) */
 	void *dnlink;		/* Downlink network interface (Wireless) */
 
 	uint8_t inuse:1;
@@ -83,6 +86,7 @@ struct app_conn_t {
 
 	/* Management of connections */
 	int unit;
+	/* chilli_connect中赋值为DNPROT_DHCP_NONE */
 	int dnprot;		/* Downlink protocol */
 	time_t rt;
 
@@ -136,10 +140,14 @@ struct app_conn_t {
 
 	uint32_t nasip;		/* Set by access request */
 	uint32_t nasport;	/* Set by access request */
+	/* STA MAC */
 	uint8_t hismac[PKT_ETH_ALEN];	/* His MAC address */
 	struct in_addr ourip;	/* IP address to listen to */
 	struct in_addr hisip;	/* Client IP address */
 	struct in_addr hismask;	/* Client IP address mask */
+	/* 客户端DHCP请求的IP地址
+	   或客户端的源IP
+	*/
 	struct in_addr reqip;	/* IP requested by client */
 #ifdef ENABLE_UAMANYIP
 	struct in_addr natip;

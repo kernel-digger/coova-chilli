@@ -146,6 +146,7 @@ static int opt_run(int argc, char **argv, int reload)
 
 	log_dbg("running chilli_opt on %s", file);
 
+	/* 调用chilli_opt进程 */
 	if (execv(SBINDIR "/chilli_opt", newargs) != 0) {
 		log_err(errno, "execl() did not return 0!");
 		exit(0);
@@ -167,6 +168,7 @@ int options_load(int argc, char **argv, bstring bt)
 	while (fd <= 0) {
 		int status = 0;
 		int pid = opt_run(argc, argv, 0);
+		/* 等待chilli_opt结束 */
 		waitpid(pid, &status, 0);
 		if (WIFEXITED(status) && WEXITSTATUS(status) == 2)
 			exit(0);
@@ -233,6 +235,9 @@ int options_mkdir(char *path)
 	return 0;
 }
 
+/*
+从生成的二进制配置文件/var/run/chilli.11656.cfg.bin中读出配置
+*/
 int options_fromfd(int fd, bstring bt)
 {
 	uint8_t cksum[16], cksum_check[16];

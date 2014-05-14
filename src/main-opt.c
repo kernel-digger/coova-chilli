@@ -818,7 +818,7 @@ int main(int argc, char **argv)
 		     numargs < args_info.uamdomain_given && i < MAX_UAM_DOMAINS;
 		     ++numargs) {
 			char *tb = args_info.uamdomain_arg[numargs];
-			char *tok, *str, *ptr;
+			char *tok, *str, *ptr = NULL;
 			for (str = tb; i < MAX_UAM_DOMAINS; str = NULL) {
 				tok = strtok_r(str, ",", &ptr);
 				if (!tok)
