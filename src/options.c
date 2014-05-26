@@ -102,9 +102,12 @@ static int option_s_s(bstring str, char **sp)
 	return 1;
 }
 
+/* 调整指针 */
 static int option_s_l(bstring str, char **s)
 {
+	/* 二进制文件中的指针字段实际上是一个偏移 */
 	size_t offset = (size_t) * s;
+	/* 根据偏移调整指针到数据区的指针值 */
 	*s = ((char *)str->data) + offset;
 	if (!**s)
 		*s = 0;
@@ -122,6 +125,7 @@ static int opt_run(int argc, char **argv, int reload)
 
 	log_dbg("(Re)processing options [%s]", file);
 
+	/* fork子进程 */
 	if ((status = safe_fork()) < 0) {
 		log_err(errno, "fork() returned -1!");
 		return -1;
@@ -135,6 +139,7 @@ static int opt_run(int argc, char **argv, int reload)
 		return -1;
 	}
 
+	/* 记录chilli的命令行参数 */
 	for (i = 1; i < argc; i++) {
 		newargs[i] = argv[i];
 	}
@@ -146,7 +151,7 @@ static int opt_run(int argc, char **argv, int reload)
 
 	log_dbg("running chilli_opt on %s", file);
 
-	/* 调用chilli_opt进程 */
+	/* 执行chilli_opt程序 */
 	if (execv(SBINDIR "/chilli_opt", newargs) != 0) {
 		log_err(errno, "execl() did not return 0!");
 		exit(0);
@@ -250,21 +255,26 @@ int options_fromfd(int fd, bstring bt)
 	char isReload[MAX_MODULES];
 #endif
 
+	/* 读取options_t结构体 */
 	int rd = safe_read(fd, &o, sizeof(o));
 
 	if (rd == sizeof(o)) {
+		/* 读取数据长度 */
 		rd = safe_read(fd, &len, sizeof(len));
 		if (rd == sizeof(len)) {
 			ballocmin(bt, len);
+			/* 读取数据 */
 			rd = safe_read(fd, bt->data, len);
 			if (rd == len) {
 				has_error = 0;
 			}
+			/* 读取校验码 */
 			rd = safe_read(fd, cksum_check, sizeof(cksum_check));
 			if (rd != sizeof(cksum_check)) {
 				has_error = 1;
 			} else {
 				options_md5(&o, cksum);
+				/* 检查校验码 */
 				if (memcmp(cksum, cksum_check, sizeof(cksum))) {
 					has_error = 1;
 				}
@@ -495,7 +505,9 @@ int options_fromfd(int fd, bstring bt)
 
 	if (_options._data)
 		free(_options._data);
+	/* 复制 */
 	memcpy(&_options, &o, sizeof(o));
+	/* 接管数据区 */
 	_options._data = (char *)bt->data;
 
 #ifdef ENABLE_MODULES

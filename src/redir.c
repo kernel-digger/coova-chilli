@@ -1942,6 +1942,15 @@ void redir_set(struct redir_t *redir, uint8_t * hwaddr, int debug)
 	return;
 }
 
+/*
+从query string中提取@param的数据部分
+
+@src: query string
+@param: 如 username userurl
+@dst:
+
+@return: 没有@param返回-1;取到返回0
+*/
 /* Get a parameter of an HTTP request. Parameter is url decoded */
 /* TODO: Should be merged with other parsers */
 int redir_getparam(struct redir_t *redir, char *src, char *param, bstring dst)
@@ -1951,6 +1960,7 @@ int redir_getparam(struct redir_t *redir, char *src, char *param, bstring dst)
 	char sstr[255];
 	ssize_t len = 0;
 
+	/* 例如 &username= */
 	safe_snprintf(sstr, sizeof(sstr), "&%s=", param);
 
 #if(_debug_ > 1)
@@ -1958,26 +1968,33 @@ int redir_getparam(struct redir_t *redir, char *src, char *param, bstring dst)
 #endif
 
 	len = strlen(sstr);
+	/* 第一个字段,没有&符号 */
 	if (!strncmp(src, sstr + 1, len - 1)) {
 		p1 = src;
 		p1 += len - 1;
+	/* 在中间部分或最后 */
 	} else if ((p1 = strstr(src, sstr))) {
 		p1 += len;
+	/* 没有@param这个字段,返回-1 */
 	} else
 		return -1;
+	/* p1指向数据的起始位置 */
 
 	/* The parameter ends with a & or null */
 	p2 = strstr(p1, "&");
 
+	/* 计算=号后的数据长度 */
 	if (p2)
 		len = p2 - p1;
 	else
 		len = strlen(p1);
 
+	/* 有数据,复制到@dst */
 	if (len) {
 		bstring s = blk2bstr(p1, len);
 		redir_urldecode(s, dst);
 		bdestroy(s);
+	/* 没有数据,置为空 */
 	} else
 		bassigncstr(dst, "");
 
@@ -2069,6 +2086,7 @@ static int redir_getreq(struct redir_t *redir, struct redir_socket_t *sock,
 			buflen = 0;
 		}
 
+		/* 有数据需要读取 或 不是fork的 */
 		if (read_waiting || !forked) {
 
 			if (buflen + 2 >= sizeof(buffer)) {	/* ensure space for a least one more byte + null */
@@ -2159,12 +2177,14 @@ static int redir_getreq(struct redir_t *redir, struct redir_socket_t *sock,
 			/* 一行数据 */
 			*eol = 0;
 
+			/* 第一行,解析http的方法 */
 			if (lines++ == 0) {	/* first line */
 				char *p1 = buffer;
 				/* query string */
 				char qs_delim = '?';
 				char *p2;
 
+				/* 支持3种方法 */
 				if (!strncmp("GET ", p1, 4)) {
 					p1 += 4;
 				} else if (!strncmp("HEAD ", p1, 5)) {
@@ -2192,7 +2212,7 @@ static int redir_getreq(struct redir_t *redir, struct redir_socket_t *sock,
 						p1++;
 				}
 
-				/* 以'/'开始 */
+				/* Request URI以'/'开始 */
 				if (*p1 == '/')
 					p1++;
 				else {
@@ -2265,6 +2285,7 @@ static int redir_getreq(struct redir_t *redir, struct redir_socket_t *sock,
 					conn->type = REDIR_EWTAPI;
 #endif
 
+				/* 分隔符为?号,含有query string */
 				if (qs_delim == '?') {
 					p1 = p2 + 1;
 					p2 = strchr(p1, ' ');
@@ -2406,6 +2427,7 @@ static int redir_getreq(struct redir_t *redir, struct redir_socket_t *sock,
 				bstrtocstr(bt, conn->lang, sizeof(conn->lang));
 
 			if (redir_getparam(redir, httpreq->qs, "username", bt)) {
+				/* 没有username则出错 */
 				log_err(0,
 					"No username found in login request");
 				conn->response = REDIR_ERROR_PROTOCOL;
@@ -3684,6 +3706,7 @@ int redir_main(struct redir_t *redir,
 #endif
 
 	termstate = REDIR_TERM_GETREQ;
+	/* 接收并解析客户端的http请求 */
 	switch (err = redir_getreq(redir, &socket, &conn, &httpreq, rreq)) {
 	case 0:
 		break;

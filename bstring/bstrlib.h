@@ -185,8 +185,11 @@ extern int bssplitstrcb (struct bStream * s, const_bstring splitStr,
 extern int bseof (const struct bStream * s);
 
 struct tagbstring {
+	/* 分配的data的空间大小 */
 	int mlen;
+	/* data中数据的长度,字符串长度(不含'\0') */
 	int slen;
+	/* 动态分配的空间 */
 	unsigned char * data;
 };
 

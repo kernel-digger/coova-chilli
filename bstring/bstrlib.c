@@ -61,6 +61,15 @@
 
 #define bBlockCopy(D,S,L) { if ((L) > 0) bstr__memmove ((D),(S),(L)); }
 
+/*
+向上对齐到2的n次方
+2	=> 8
+9	=> 16
+20	=> 32
+100	=> 128
+128	=> 256
+200	=> 256
+*/
 /* Compute the snapped size for a given requested size.  By snapping to powers
    of 2 like this, repeated reallocations are avoided. */
 static int snapUpSize (int i) {
@@ -179,6 +188,7 @@ int ballocmin (bstring b, int len) {
  *  Create a bstring which contains the contents of the '\0' terminated char *
  *  buffer str.
  */
+/* 创建一个struct tagbstring,数据为字符串@str */
 bstring bfromcstr (const char * str) {
 bstring b;
 int i;
@@ -186,6 +196,7 @@ size_t j;
 
 	if (str == NULL) return NULL;
 	j = (strlen) (str);
+	/* 计算分配的空间大小 */
 	i = snapUpSize ((int) (j + (2 - (j != 0))));
 	if (i <= (int) j) return NULL;
 

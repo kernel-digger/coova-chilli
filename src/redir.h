@@ -168,6 +168,7 @@ struct redir_httpreq_t {
 	/* query string */
 	char qs[REDIR_USERURLSIZE];
 
+	/* redir_main进程不是fork的时候,指向各自的接收buffer */
 	bstring data_in;
 
 	size_t clen;

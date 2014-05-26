@@ -2252,8 +2252,12 @@ static char *package_name = 0;
  * @param additional_error possible further error specification
  */
 static
+			/* @field: 保存结果的地方 */
 int update_arg(void *field, char **orig_field,
+		/* @field_given: 记录@field域有几个值 */
 	       unsigned int *field_given, unsigned int *prev_given,
+		/* @value: optarg参数的值 */
+		/* @possible_values: 该选项可以接受的值 */
 	       char *value, const char *possible_values[],
 	       const char *default_value,
 	       cmdline_parser_arg_type arg_type,
@@ -2287,7 +2291,9 @@ int update_arg(void *field, char **orig_field,
 
 	FIX_UNUSED(default_value);
 
+	/* 原来有值,且未设置覆盖标记 */
 	if (field_given && *field_given && !override)
+		/* 则不解析命令行参数值 */
 		return 0;
 	if (prev_given)
 		(*prev_given)++;
@@ -2313,6 +2319,7 @@ int update_arg(void *field, char **orig_field,
 			string_field = (char **)field;
 			if (!no_free && *string_field)
 				free(*string_field);	/* free previous string */
+			/* 保存参数值 */
 			*string_field = gengetopt_strdup(val);
 		}
 		break;
@@ -2569,6 +2576,14 @@ cmdline_parser_internal(int argc, char **argv,
 	while (1) {
 		int option_index = 0;
 
+		/*
+struct option {
+	const char *name;
+	int         has_arg;
+	int        *flag;
+	int         val;
+};
+		*/
 		static struct option long_options[] = {
 			{"help", 0, NULL, 'h'},
 			{"version", 0, NULL, 'V'},
@@ -2781,6 +2796,7 @@ cmdline_parser_internal(int argc, char **argv,
 		c = getopt_long(argc, argv, "hVfdb:rFc:n:", long_options,
 				&option_index);
 
+		/* 参数解析结束 */
 		if (c == -1)
 			break;	/* Exit from `while (1)' loop.  */
 
@@ -2864,6 +2880,7 @@ cmdline_parser_internal(int argc, char **argv,
 				goto failure;
 
 			break;
+		/* 配置文件 如 -c /etc/chilli.conf */
 		case 'c':	/* Read configuration file.  */
 
 			if (update_arg((void *)&(args_info->conf_arg),
@@ -2888,6 +2905,7 @@ cmdline_parser_internal(int argc, char **argv,
 
 			break;
 
+		/* 长选项 */
 		case 0:	/* Long option with no short option */
 			/* Which modules to print debug messages for.  */
 			if (strcmp

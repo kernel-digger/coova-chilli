@@ -20,10 +20,16 @@
 
 #include "chilli.h"
 
+/*
+@dst:
+@src:
+@size: 不大于@dst所指buffer的长度
+*/
 char *safe_strncpy(char *dst, const char *src, size_t size)
 {
 	if (!size)
 		return dst;
+	/* 确保@dst有个0结束符,这里@size减1了,以确保strncpy的时候0结束符还在 */
 	dst[--size] = '\0';
 	return strncpy(dst, src, size);
 }
