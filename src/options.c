@@ -96,7 +96,9 @@ static int option_s_s(bstring str, char **sp)
 {
 	char *s = *sp ? *sp : "";
 	size_t len = strlen(s) + 1;
+	/* 指向数据区中的偏移 */
 	*sp = (char *)(size_t) str->slen;
+	/* 添加数据 */
 	if (bcatblk(str, s, len) != BSTR_OK)
 		return 0;
 	return 1;
@@ -172,6 +174,7 @@ int options_load(int argc, char **argv, bstring bt)
 
 	while (fd <= 0) {
 		int status = 0;
+		/* 使用单独的chilli_opt程序处理命令行参数和配置 */
 		int pid = opt_run(argc, argv, 0);
 		/* 等待chilli_opt结束 */
 		waitpid(pid, &status, 0);
@@ -539,6 +542,9 @@ int options_fromfd(int fd, bstring bt)
 	return 1;
 }
 
+/*
+把当前全局变量_options中的配置保存到二进制文件@file中
+*/
 int options_save(char *file, bstring bt)
 {
 	uint8_t cksum[16];
@@ -746,19 +752,23 @@ int options_save(char *file, bstring bt)
 		return 0;
 
 	} else {
+		/* 写结构体 */
 		if (safe_write(fd, &o, sizeof(o)) < 0)
 			log_err(errno, "write()");
 
 		size_t len = bt->slen;
 
+		/* 写数据区长度 */
 		if (safe_write(fd, &len, sizeof(len)) < 0)
 			log_err(errno, "write()");
 
+		/* 写数据 */
 		if (safe_write(fd, bt->data, len) < 0)
 			log_err(errno, "write()");
 
 		options_md5(&o, cksum);
 
+		/* 写md5 */
 		if (safe_write(fd, cksum, sizeof(cksum)) < 0)
 			log_err(errno, "write()");
 

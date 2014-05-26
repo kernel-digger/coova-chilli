@@ -281,6 +281,7 @@ static void free_cmd_list(void)
 
 static char *gengetopt_strdup(const char *s);
 
+/* 清除_given变量的标记值 */
 static
 void clear_given(struct gengetopt_args_info *args_info)
 {
@@ -491,6 +492,7 @@ void clear_given(struct gengetopt_args_info *args_info)
 	args_info->ipv6only_given = 0;
 }
 
+/* 初始化设置一些指针变量 */
 static
 void clear_args(struct gengetopt_args_info *args_info)
 {
@@ -838,6 +840,7 @@ void clear_args(struct gengetopt_args_info *args_info)
 
 }
 
+/* 帮助信息字段的初始化 */
 static
 void init_args_info(struct gengetopt_args_info *args_info)
 {
@@ -1100,6 +1103,7 @@ void cmdline_parser_print_help(void)
 		printf("%s\n", gengetopt_args_info_help[i++]);
 }
 
+/* 初始化@args_info */
 void cmdline_parser_init(struct gengetopt_args_info *args_info)
 {
 	clear_given(args_info);
@@ -2252,17 +2256,28 @@ static char *package_name = 0;
  * @param additional_error possible further error specification
  */
 static
-			/* @field: 保存结果的地方 */
+			/* @field: 保存结果的地方
+				   例如gengetopt_args_info结构中的一个字段,
+				   字段为指针的话,参数实际为二级指针 */
+			/* @orig_field: 保存命令行参数原始值 */
 int update_arg(void *field, char **orig_field,
 		/* @field_given: 记录@field域有几个值 */
 	       unsigned int *field_given, unsigned int *prev_given,
 		/* @value: optarg参数的值 */
 		/* @possible_values: 该选项可以接受的值 */
 	       char *value, const char *possible_values[],
+		/* @default_value: 默认值,暂未使用 */
 	       const char *default_value,
+		/* @arg_type: 值的类型,枚举值cmdline_parser_arg_type */
 	       cmdline_parser_arg_type arg_type,
+		/* @check_ambiguity: ambiguity模棱两可的话 */
+		/* @override: 1 - 覆盖; 0 - 不覆盖 */
 	       int check_ambiguity, int override,
+		/* @no_free: 1 - 不释放之前的值; 0 - 释放 */
+		/* @multiple_option: 选项允许出现多次 */
 	       int no_free, int multiple_option,
+		/* @long_opt: 长选项名称 */
+		/* @short_opt: 短选项字符, '-'表示没有短选项 */
 	       const char *long_opt, char short_opt,
 	       const char *additional_error)
 {
@@ -2275,8 +2290,10 @@ int update_arg(void *field, char **orig_field,
 	stop_char = 0;
 	found = 0;
 
+	/* 不允许出现多次的选项,打印一个警告信息 */
 	if (!multiple_option && prev_given
 	    && (*prev_given || (check_ambiguity && *field_given))) {
+		/* 有对应的短选项 */
 		if (short_opt != '-')
 			fprintf(stderr,
 				"WARNING %s: `--%s' (`-%c') option given more than once%s\n",
@@ -2317,6 +2334,7 @@ int update_arg(void *field, char **orig_field,
 	case ARG_STRING:
 		if (val) {
 			string_field = (char **)field;
+			/* 释放之前的值 */
 			if (!no_free && *string_field)
 				free(*string_field);	/* free previous string */
 			/* 保存参数值 */
@@ -2361,6 +2379,7 @@ int update_arg(void *field, char **orig_field,
 	return 0;		/* OK */
 }
 
+/* 重复选项的参数提取到临时链表中 */
 /**
  * @brief store information about a multiple option in a temporary list
  * @param list where to (temporarily) store multiple options
@@ -2531,6 +2550,7 @@ void update_multiple_arg(void *field, char ***orig_field,
 	}
 }
 
+/* 解析命令行参数 */
 int
 cmdline_parser_internal(int argc, char **argv,
 			struct gengetopt_args_info *args_info,
@@ -6066,15 +6086,19 @@ static int _cmdline_parser_configfile(const char *filename, int *my_argc)
 		}
 
 		/* find first non-whitespace character in the line */
+		/* 空白的字符个数 */
 		next_token = strspn(linebuf, " \t\r\n");
+		/* 非空白的字符起始位置 */
 		str_index = linebuf + next_token;
 
 		if (str_index[0] == '\0' || str_index[0] == '#')
 			continue;	/* empty line or comment line is skipped */
 
+		/* 选项的起始位置 */
 		fopt = str_index;
 
 		/* truncate fopt at the end of the first non-valid character */
+		/* 非空白和=号的字符个数 */
 		next_token = strcspn(fopt, " \t\r\n=");
 
 		if (fopt[next_token] == '\0') {	/* the line is over */
@@ -6084,22 +6108,29 @@ static int _cmdline_parser_configfile(const char *filename, int *my_argc)
 		}
 
 		/* remember if equal sign is present */
+		/* 紧挨着的是=号 */
 		equal = (fopt[next_token] == '=');
+		/* 设置字符串结束
+		   这里next_token加1了
+		*/
 		fopt[next_token++] = '\0';
 
 		/* advance pointers to the next token after the end of fopt */
+		/* 空白字符个数 */
 		next_token += strspn(fopt + next_token, " \t\r\n");
 
 		/* check for the presence of equal sign, and if so, skip it */
 		if (!equal)
 			if ((equal = (fopt[next_token] == '='))) {
 				next_token++;
+				/* 跳过=号和空白 */
 				next_token +=
 				    strspn(fopt + next_token, " \t\r\n");
 			}
 		str_index += next_token;
 
 		/* find argument */
+		/* 参数的起始位置 */
 		farg = str_index;
 		if (farg[0] == '\"' || farg[0] == '\'') {	/* quoted argument */
 			str_index = strchr(++farg, str_index[0]);	/* skip opening quote */
@@ -6137,6 +6168,7 @@ static int _cmdline_parser_configfile(const char *filename, int *my_argc)
 noarg:
 		if (!strcmp(fopt, "include")) {
 			if (farg && *farg) {
+				/* 解析include包含的文件 */
 				result =
 				    _cmdline_parser_configfile(farg, my_argc);
 			} else {
@@ -6147,6 +6179,7 @@ noarg:
 			}
 			continue;
 		}
+		/* 转化成命令行参数的形式 */
 		len = strlen(fopt);
 		strcat(my_argv, len > 1 ? "--" : "-");
 		strcat(my_argv, fopt);
@@ -6184,6 +6217,11 @@ cmdline_parser_configfile(const char *filename,
 	return cmdline_parser_config_file(filename, args_info, &params);
 }
 
+/*
+@filename: 配置文件 如/etc/chilli.conf
+@args_info: 之前解析出的命令行参数
+@params:
+*/
 int
 cmdline_parser_config_file(const char *filename,
 			   struct gengetopt_args_info *args_info,

@@ -271,6 +271,7 @@ int main(int argc, char **argv)
 
 	if (cmdline_parser_configfile(args_info.conf_arg ?
 				      args_info.conf_arg :
+					/* 默认配置文件 如/etc/chilli.conf */
 				      DEFCHILLICONF, &args_info, 0, 0, 0)) {
 		log_err(0, "Failed to parse configuration file: %s!",
 			args_info.conf_arg);
@@ -283,6 +284,8 @@ int main(int argc, char **argv)
 		log_err(0, "Failed to update system DNS settings (res_init()!");
 		goto end_processing;
 	}
+
+	/* 从解析出的命令行参数信息中提取数据 */
 
 	/* Handle each option */
 	_options.initialized = 1;
@@ -1305,6 +1308,9 @@ int main(int argc, char **argv)
 
 	ret = 0;
 
+	/* chilli主进程调用opt_run
+	   在opt_run中会使用-b选项传递二进制文件的名称
+	*/
 	if (_options.binconfig) {	/* save out the configuration */
 		bstring bt = bfromcstr("");
 		int ok = options_save(_options.binconfig, bt);

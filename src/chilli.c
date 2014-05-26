@@ -497,6 +497,7 @@ static struct timespec startup_real;
 static struct timespec startup_mono;
 #endif
 
+/* time_t为有符号整数,定义为long int */
 static time_t start_tick = 0;
 
 time_t mainclock_towall(time_t t)
