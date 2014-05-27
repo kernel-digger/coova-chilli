@@ -1821,6 +1821,7 @@ int redir_listen(struct redir_t *redir)
 
 /*
 进程间通信
+监听fork的子进程发来的重定向结果
 */
 int redir_ipc(struct redir_t *redir)
 {

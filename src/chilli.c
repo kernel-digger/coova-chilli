@@ -492,8 +492,19 @@ int chilli_appconn_run(int (*cb) (struct app_conn_t *, void *), void *d)
 	return 0;
 }
 
+#if 0
+typedef long               __kernel_time_t;
+
+struct timespec {
+        __kernel_time_t tv_sec;                 /* seconds */
+        long            tv_nsec;                /* nanoseconds */
+};
+#endif
+
 #ifdef HAVE_LIBRT
+/* 真实时间,秒数tv_sec与time(NULL)函数一样 */
 static struct timespec startup_real;
+/* 单调时间,系统运行时间,uptime */
 static struct timespec startup_mono;
 #endif
 
@@ -7823,7 +7834,9 @@ int chilli_main(int argc, char **argv)
 			/*
 			 * Format the filename of the current (cpid) and new binconfig files.
 			 */
+			/* 父进程pid文件 */
 			chilli_binconfig(file, sizeof(file), cpid);
+			/* 子进程pid文件 */
 			chilli_binconfig(file2, sizeof(file2), new_pid);
 
 			/*

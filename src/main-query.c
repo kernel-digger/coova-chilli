@@ -227,8 +227,12 @@ static struct cmd_arguments args[] = {
 	/* more... */
 };
 
+/* 数组项数 */
 static int count = sizeof(args) / sizeof(struct cmd_arguments);
 
+/*
+把@string字符串形式的mac变成数组形式@mac
+*/
 static int parse_mac(uint8_t * mac, char *string)
 {
 	unsigned int temp[PKT_ETH_ALEN];
@@ -244,6 +248,7 @@ static int parse_mac(uint8_t * mac, char *string)
 	memcpy(macstr, string, macstrlen);
 	macstr[macstrlen] = 0;
 
+	/* 把不是16进制的字符变成空格 */
 	for (i = 0; i < macstrlen; i++)
 		if (!isxdigit((int)macstr[i]))
 			macstr[i] = 0x20;
@@ -303,12 +308,14 @@ static void timeout_alarm(int signum)
 
 static int process_args(int argc, char *argv[], int argidx)
 {
+	/* 剩余参数个数 */
 	int c = argc - argidx;
 	char is_data = 0;
 
 	while (c > 0) {
 		int i;
 
+		/* 遍历支持的参数 */
 		for (i = 0; i < count; i++) {
 
 			if (!strcmp(argv[argidx], args[i].name)) {
@@ -442,6 +449,15 @@ static int chilli_communicate(int s,
 	return 0;
 }
 
+#if 0
+#define UNIX_PATH_MAX   108
+
+struct sockaddr_un {
+        sa_family_t sun_family; /* AF_UNIX */
+        char sun_path[UNIX_PATH_MAX];   /* pathname */
+};
+#endif
+
 int main(int argc, char **argv)
 {
 	/*
@@ -483,6 +499,7 @@ int main(int argc, char **argv)
 	itval.it_value.tv_sec = query_timeout;
 	itval.it_value.tv_usec = 0;
 
+	/* ITIMER_REAL: 以系统真实的时间来计算，它送出SIGALRM信号。 */
 	if (setitimer(ITIMER_REAL, &itval, NULL)) {
 		log_err(errno, "setitimer() failed!");
 	}
@@ -527,6 +544,7 @@ int main(int argc, char **argv)
 		return usage(argv[0]);
 
 	cmd = argv[argidx++];
+	/* 遍历支持的命令 */
 	for (s = 0; commands[s].command; s++) {
 		if (!strcmp(cmd, commands[s].command)) {
 			request.type = commands[s].type;
