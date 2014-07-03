@@ -225,6 +225,10 @@ typedef struct _redir_request {
 } redir_request;
 
 struct redir_socket_t {
+	/* 客户端的accept的socket已经复制到标准输入0,标准输出1
+	   fd[0] - 0
+	   fd[1] - 1
+	*/
 	int fd[2];
 #ifdef HAVE_SSL
 	openssl_con *sslcon;

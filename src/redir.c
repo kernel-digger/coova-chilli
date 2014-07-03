@@ -3349,7 +3349,7 @@ int redir_accept(struct redir_t *redir, int idx)
 		execv(*binqqargs, binqqargs);
 
 	} else {
-		/* accept的new_socket已经复制到0,1 */
+		/* accept的new_socket已经复制到-标准输入0,标准输出1 */
 		return redir_main(redir, 0, 1, &address, &baddress, idx, 0);
 
 	}
@@ -3434,6 +3434,10 @@ int redir_send_msg(struct redir_t *this, struct redir_msg_t *msg)
 }
 #endif
 
+/*
+@in: accept的新socket
+@out: accept的新socket
+*/
 pid_t redir_fork(int in, int out)
 {
 	pid_t pid = chilli_fork(CHILLI_PROC_REDIR, "[redir]");
@@ -3470,8 +3474,10 @@ pid_t redir_fork(int in, int out)
 			return -1;
 #else
 		/* 复制socket描述符 */
+		/* 标准输入 */
 		if (dup2(in, 0) == -1)
 			return -1;
+		/* 标准输出 */
 		if (dup2(out, 1) == -1)
 			return -1;
 #endif
